@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>The Cat and Calm</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/garet-font@1.0.0/garet.css" rel="stylesheet" onerror="this.onerror=null;">
+<style>
+  /* ── Garet fallback via @font-face ── */
+  @font-face {
+    font-family: 'Garet';
+    src: url('https://cdn.jsdelivr.net/gh/nicholasgasior/garet-font/Garet-Book.otf') format('opentype');
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: 'Garet';
+    src: url('https://cdn.jsdelivr.net/gh/nicholasgasior/garet-font/Garet-Heavy.otf') format('opentype');
+    font-weight: 700;
+  }
+
+  :root {
+    --brand: #d4c4ac;
+    --bg: #ffffff;
+    --surface: #faf8f5;
+    --text: #2c2420;
+    --muted: #a09488;
+    --border: #e8e2da;
+    --accent: #ede5d8;
+    --success: #5a8a67;
+    --error: #c0645a;
+    --dark-brown: #3a2e28;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Noto Sans Thai', sans-serif;
+    background: #f0ebe4;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  #app {
+    background: var(--bg);
+    width: 100%;
+    max-width: 430px;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .screen {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+  .screen.active { display: flex; }
+
+  /* ── Top bar ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .topbar-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    text-align: center;
+  }
+  .back-btn {
+    width: 36px; height: 36px;
+    border: none; background: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: var(--text);
+    border-radius: 50%;
+    transition: background .15s;
+  }
+  .back-btn:active { background: var(--accent); }
+  .topbar-right { width: 36px; }
+
+  /* ── Scrollable content ── */
+  .content { flex: 1; padding: 20px; overflow-y: auto; }
+
+  /* ── Brand header ── */
+  .brand-header {
+    text-align: center;
+    padding: 36px 20px 20px;
+  }
+  .brand-name {
+    font-family: 'Garet', 'Georgia', serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: .25em;
+    color: var(--dark-brown);
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+  .brand-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  /* ── Divider ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* ── Stats row ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 0 20px;
+    margin: 16px 0;
+  }
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .stat-num { font-size: 22px; font-weight: 700; color: var(--text); }
+  .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Section label ── */
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 0 20px;
+    margin: 20px 0 10px;
+  }
+
+  /* ── Action cards ── */
+  .action-cards { padding: 0 20px; display: flex; flex-direction: column; gap: 10px; }
+  .action-card {
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: transform .1s, box-shadow .1s;
+  }
+  .action-card:active { transform: scale(.98); }
+  .action-card.primary {
+    background: var(--brand);
+    border-color: var(--brand);
+  }
+  .action-card-icon { font-size: 22px; }
+  .action-card-text { flex: 1; }
+  .action-card-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .action-card-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .action-card.primary .action-card-desc { color: var(--dark-brown); opacity: .7; }
+  .action-card-arrow { color: var(--muted); font-size: 16px; }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 100;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0 12px;
+    cursor: pointer;
+    gap: 3px;
+  }
+  .nav-icon { font-size: 20px; }
+  .nav-label { font-size: 10px; color: var(--muted); }
+  .nav-item.active .nav-label { color: var(--dark-brown); font-weight: 600; }
+
+  /* ── Choice cards (screen 2) ── */
+  .choice-cards { display: flex; flex-direction: column; gap: 12px; }
+  .choice-card {
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: border-color .15s, background .15s;
+  }
+  .choice-card.selected {
+    border-color: var(--brand);
+    background: #fdf9f4;
+  }
+  .choice-card.primary-choice {
+    background: var(--brand);
+    border-color: var(--brand);
+  }
+  .choice-icon { font-size: 28px; }
+  .choice-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .choice-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Search / input ── */
+  .search-box {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 15px;
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .search-box:focus { border-color: var(--brand); }
+
+  /* ── Customer result card ── */
+  .result-card {
+    margin-top: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .result-name { font-size: 16px; font-weight: 600; color: var(--text); }
+  .result-phone { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .result-address { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+  .cat-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .cat-pill {
+    background: var(--accent);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--dark-brown);
+  }
+
+  /* ── Paste area (screen 3) ── */
+  .paste-area {
+    border: 2px dashed var(--brand);
+    border-radius: 14px;
+    padding: 20px;
+    min-height: 140px;
+    background: var(--surface);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    width: 100%;
+    resize: vertical;
+    outline: none;
+    line-height: 1.5;
+  }
+  .paste-area::placeholder { color: var(--muted); }
+
+  .ai-badge {
+    display: inline-block;
+    background: var(--dark-brown);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: .05em;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* ── Form fields ── */
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 6px; display: block; }
+  .form-input, .form-textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .form-input:focus, .form-textarea:focus { border-color: var(--brand); }
+  .form-textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+
+  /* ── Cat card ── */
+  .cat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .cat-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .cat-card-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--error);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-family: inherit;
+  }
+  .remove-btn:active { background: #fdf0ef; }
+
+  /* ── Service chips ── */
+  .service-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .service-chip {
+    padding: 7px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    background: var(--bg);
+    font-family: inherit;
+    transition: border-color .1s, background .1s;
+    white-space: nowrap;
+  }
+  .service-chip.selected {
+    border-color: var(--dark-brown);
+    background: var(--dark-brown);
+    color: #fff;
+  }
+
+  /* ── Size badge ── */
+  .size-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--dark-brown);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 10px;
+  }
+
+  /* ── Duration summary ── */
+  .duration-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .duration-label { font-size: 13px; color: var(--muted); }
+  .duration-value { font-size: 15px; font-weight: 700; color: var(--text); }
+
+  /* ── Dashed add button ── */
+  .dashed-btn {
+    width: 100%;
+    padding: 14px;
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 4px;
+    transition: border-color .15s, color .15s;
+  }
+  .dashed-btn:active { border-color: var(--brand); color: var(--dark-brown); }
+
+  /* ── Zone grid ── */
+  .zone-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .zone-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 14px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .zone-card.selected { border-color: var(--dark-brown); background: var(--accent); }
+  .zone-letter {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--dark-brown);
+    font-family: 'Garet', serif;
+  }
+  .zone-name { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 2px; }
+  .zone-areas { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+  .zone-full {
+    width: 100%;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: left;
+    transition: border-color .15s, background .15s;
+  }
+  .zone-full.selected { border-color: var(--dark-brown); background: var(--accent); }
+
+  /* ── Info box ── */
+  .info-box {
+    background: #eef7f1;
+    border: 1px solid #b8d9c2;
+    border-radius: 12px;
+    padding: 14px;
+    margin-top: 14px;
+    font-size: 13px;
+    color: #2d5e3a;
+    line-height: 1.5;
+  }
+  .info-box-title { font-weight: 600; margin-bottom: 6px; }
+
+  .ref-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .ref-box-label { font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .06em; }
+  .ref-box-value { color: var(--text); }
+
+  /* ── Calendar ── */
+  .calendar { margin-bottom: 20px; }
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .cal-month { font-size: 16px; font-weight: 600; color: var(--text); }
+  .cal-nav {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--text);
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-dow {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    padding: 4px 0;
+    font-weight: 600;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    position: relative;
+    transition: background .1s;
+  }
+  .cal-day.empty { pointer-events: none; }
+  .cal-day.past { color: var(--border); pointer-events: none; }
+  .cal-day.friday { color: var(--border); pointer-events: none; }
+  .cal-day.today { background: var(--brand); color: var(--dark-brown); font-weight: 700; }
+  .cal-day.has-booking { background: var(--accent); }
+  .cal-day.selected { background: var(--dark-brown) !important; color: #fff !important; font-weight: 700; }
+  .cal-day:not(.past):not(.friday):not(.empty):hover { background: var(--accent); }
+
+  /* ── Time slots ── */
+  .time-slots { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .time-chip {
+    padding: 9px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    background: var(--bg);
+    font-family: inherit;
+    transition: border-color .1s, background .1s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .time-chip.selected { border-color: var(--dark-brown); background: var(--dark-brown); color: #fff; }
+  .time-chip.blocked {
+    width: 100%;
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--muted);
+    cursor: default;
+    justify-content: space-between;
+  }
+  .zone-tag {
+    font-size: 10px;
+    font-weight: 600;
+    background: #eef7f1;
+    color: var(--success);
+    padding: 2px 7px;
+    border-radius: 10px;
+  }
+
+  /* ── Time summary ── */
+  .time-summary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 14px;
+  }
+  .time-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 4px 0;
+  }
+  .time-summary-row .label { color: var(--muted); }
+  .time-summary-row .value { color: var(--text); font-weight: 500; }
+
+  .buffer-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--dark-brown);
+    font-weight: 500;
+  }
+
+  /* ── Confirmation card ── */
+  .confirm-card {
+    background: #f5f2ee;
+    border-radius: 20px;
+    padding: 24px 20px;
+    margin-bottom: 20px;
+  }
+  .confirm-brand {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .confirm-brand-name {
+    font-family: 'Garet', 'Georgia', serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .2em;
+    color: var(--dark-brown);
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+  .confirm-tagline {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-style: italic;
+  }
+  .confirm-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 0;
+    font-size: 13px;
+  }
+  .confirm-row .c-label { color: var(--muted); flex-shrink: 0; margin-right: 12px; }
+  .confirm-row .c-value { color: var(--text); font-weight: 500; text-align: right; flex: 1; }
+  .confirm-logo {
+    text-align: center;
+    margin-top: 16px;
+  }
+
+  /* ── Primary button ── */
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    background: var(--dark-brown);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+    margin-top: 8px;
+  }
+  .btn-primary:active { opacity: .85; }
+  .btn-primary:disabled { opacity: .4; cursor: default; }
+
+  .btn-secondary {
+    width: 100%;
+    padding: 14px;
+    background: var(--surface);
+    color: var(--text);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--dark-brown);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity .3s, transform .3s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Loading spinner ── */
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin .7s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Placeholder screen ── */
+  .placeholder-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    gap: 12px;
+  }
+  .placeholder-icon { font-size: 48px; opacity: .4; }
+  .placeholder-text { font-size: 15px; }
+
+  .mt8 { margin-top: 8px; }
+  .mt12 { margin-top: 12px; }
+  .mt16 { margin-top: 16px; }
+  .mt20 { margin-top: 20px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ════════════════════════════ SCREEN 1: HOME ════════════════════════════ -->
+  <div class="screen active" id="screen-home">
+    <div class="brand-header">
+      <div class="brand-name">THE<br>CAT AND CALM</div>
+      <div class="brand-subtitle" id="home-today-label">วันนี้ มีนัด — รายการ</div>
+    </div>
+    <hr class="divider" style="margin: 0 20px;">
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-num" id="stat-customers">—</div>
+        <div class="stat-label">ลูกค้าทั้งหมด</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="stat-today">—</div>
+        <div class="stat-label">นัดวันนี้</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="stat-week">—</div>
+        <div class="stat-label">นัดสัปดาห์นี้</div>
+      </div>
+    </div>
+    <div class="section-label">จัดการ</div>
+    <div class="action-cards">
+      <div class="action-card primary" onclick="startNewBooking()">
+        <div class="action-card-icon">📋</div>
+        <div class="action-card-text">
+          <div class="action-card-title">เพิ่มการจองใหม่</div>
+          <div class="action-card-desc">สร้างนัดหมายสำหรับลูกค้า</div>
+        </div>
+        <div class="action-card-arrow">›</div>
+      </div>
+      <div class="action-card" onclick="showScreen('screen-schedule')">
+        <div class="action-card-icon">📅</div>
+        <div class="action-card-text">
+          <div class="action-card-title">ตารางนัดหมาย</div>
+          <div class="action-card-desc">ดูตารางนัดทั้งหมด</div>
+        </div>
+        <div class="action-card-arrow">›</div>
+      </div>
+      <div class="action-card" onclick="showScreen('screen-report')">
+        <div class="action-card-icon">📊</div>
+        <div class="action-card-text">
+          <div class="action-card-title">รายงาน</div>
+          <div class="action-card-desc">สถิติและข้อมูลสรุป</div>
+        </div>
+        <div class="action-card-arrow">›</div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item active"><div class="nav-icon">🏠</div><div class="nav-label">หลัก</div></div>
+      <div class="nav-item" onclick="showScreen('screen-schedule')"><div class="nav-icon">📅</div><div class="nav-label">นัดหมาย</div></div>
+      <div class="nav-item" onclick="showScreen('screen-customers')"><div class="nav-icon">🐱</div><div class="nav-label">ลูกค้า</div></div>
+      <div class="nav-item" onclick="showScreen('screen-report')"><div class="nav-icon">📊</div><div class="nav-label">รายงาน</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SCREEN 2: CUSTOMER TYPE ═══════════════════ -->
+  <div class="screen" id="screen-customer-type">
+    <div class="topbar">
+      <button class="back-btn" onclick="goBack()">‹</button>
+      <div class="topbar-title">เพิ่มการจองใหม่</div>
+      <div class="topbar-right"></div>
+    </div>
+    <div class="content">
+      <div class="choice-cards">
+        <div class="choice-card primary-choice" onclick="goToNewCustomer()">
+          <div class="choice-icon">✨</div>
+          <div>
+            <div class="choice-title">ลูกค้าใหม่</div>
+            <div class="choice-desc">เพิ่มข้อมูลลูกค้าใหม่ด้วย AI</div>
+          </div>
+        </div>
+        <div class="choice-card" id="returning-choice" onclick="toggleReturningSearch()">
+          <div class="choice-icon">🐱</div>
+          <div>
+            <div class="choice-title">ลูกค้าเดิม</div>
+            <div class="choice-desc">ค้นหาจากเบอร์โทรศัพท์</div>
+          </div>
+        </div>
+      </div>
+      <div id="returning-search-area" style="display:none;">
+        <input type="tel" class="search-box" id="phone-search-input" placeholder="กรอกเบอร์โทรศัพท์..." oninput="searchCustomer(this.value)">
+        <div id="search-result"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SCREEN 3: NEW CUSTOMER ═══════════════════ -->
+  <div class="screen" id="screen-new-customer">
+    <div class="topbar">
+      <button class="back-btn" onclick="goBack()">‹</button>
+      <div class="topbar-title">ลูกค้าใหม่ <span class="ai-badge">AI</span></div>
+      <div class="topbar-right"></div>
+    </div>
+    <div class="content">
+      <div class="form-group">
+        <label class="form-label">วาง LINE ของลูกค้าที่นี่</label>
+        <textarea class="paste-area" id="line-paste" placeholder="ตัวอย่าง:
+ชื่อ: คุณมิ้ว สุขใจ
+เบอร์: 081-234-5678
+ที่อยู่: 99/5 ซอยลาดพร้าว 71 แขวงลาดพร้าว เขตลาดพร้าว กรุงเทพฯ 10230
+
+น้องแมว:
+1. มูมู่ เปอร์เซีย น้ำหนัก 4.5 กก. ขนยาว
+2. โมจิ อเมริกันช็อตแฮร์ น้ำหนัก 3.2 กก. ขนสั้น"></textarea>
+      </div>
+      <button class="btn-primary" id="ai-parse-btn" onclick="parseWithAI()">✦ ให้ AI ดึงข้อมูล</button>
+      <div id="ai-result-section" style="display:none; margin-top:20px;">
+        <hr class="divider">
+        <div class="form-group">
+          <label class="form-label">ชื่อผู้จอง</label>
+          <input type="text" class="form-input" id="nc-name" placeholder="ชื่อ-นามสกุล">
+        </div>
+        <div class="form-group">
+          <label class="form-label">เบอร์โทรศัพท์</label>
+          <input type="tel" class="form-input" id="nc-phone" placeholder="0xx-xxx-xxxx">
+        </div>
+        <div class="form-group">
+          <label class="form-label">ที่อยู่</label>
+          <textarea class="form-textarea" id="nc-address" placeholder="ที่อยู่เต็ม"></textarea>
+        </div>
+        <div id="nc-cats-container"></div>
+        <button class="btn-primary mt16" onclick="confirmNewCustomer()">ยืนยัน — ไปเลือกบริการ →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SCREEN 4: SERVICE SELECTION ═══════════════════ -->
+  <div class="screen" id="screen-services">
+    <div class="topbar">
+      <button class="back-btn" onclick="goBack()">‹</button>
+      <div class="topbar-title">เลือกบริการ</div>
+      <div class="topbar-right"></div>
+    </div>
+    <div class="content">
+      <div class="section-label" style="padding:0; margin-top:0;">เลือกบริการสำหรับแต่ละตัว</div>
+      <div id="service-cats-container" class="mt12"></div>
+      <button class="dashed-btn" onclick="addCatManually()">+ เพิ่มน้องแมว</button>
+      <div class="duration-box mt16">
+        <div class="duration-label">เวลารวมทั้งหมด</div>
+        <div class="duration-value" id="total-duration">— นาที</div>
+      </div>
+      <button class="btn-primary mt12" onclick="goToZone()">ถัดไป — เลือกโซน →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SCREEN 5: ZONE ═══════════════════ -->
+  <div class="screen" id="screen-zone">
+    <div class="topbar">
+      <button class="back-btn" onclick="goBack()">‹</button>
+      <div class="topbar-title">เลือกโซน</div>
+      <div class="topbar-right"></div>
+    </div>
+    <div class="content">
+      <div class="ref-box">
+        <div class="ref-box-label">ที่อยู่ลูกค้า</div>
+        <div class="ref-box-value" id="zone-address-ref">—</div>
+      </div>
+      <div class="zone-grid">
+        <div class="zone-card" id="zone-A" onclick="selectZone('A')">
+          <div class="zone-letter">A</div>
+          <div class="zone-name">ตะวันตก</div>
+          <div class="zone-areas">ราชพฤกษ์ · บางแค · ตลิ่งชัน · นนทบุรี · งามวงศ์วาน</div>
+        </div>
+        <div class="zone-card" id="zone-B" onclick="selectZone('B')">
+          <div class="zone-letter">B</div>
+          <div class="zone-name">เหนือ</div>
+          <div class="zone-areas">ดอนเมือง · สายไหม · รังสิต · ปทุมธานี · จตุจักร</div>
+        </div>
+        <div class="zone-card" id="zone-C" onclick="selectZone('C')">
+          <div class="zone-letter">C</div>
+          <div class="zone-name">กลาง</div>
+          <div class="zone-areas">สุขุมวิท · อโศก · ทองหล่อ · สาทร · สีลม · อารีย์</div>
+        </div>
+        <div class="zone-card" id="zone-D" onclick="selectZone('D')">
+          <div class="zone-letter">D</div>
+          <div class="zone-name">ตะวันออก</div>
+          <div class="zone-areas">บางนา · อุดมสุข · ศรีนครินทร์ · บางกะปิ</div>
+        </div>
+      </div>
+      <button class="zone-full" id="zone-none" onclick="selectZone('ไม่มีโซน')">
+        🌐 ไม่มีโซน / นอกพื้นที่
+      </button>
+      <div id="zone-bookings-info"></div>
+      <button class="btn-primary mt20" onclick="goToDateTime()">ถัดไป — เลือกวันและเวลา →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SCREEN 6: DATE & TIME ═══════════════════ -->
+  <div class="screen" id="screen-datetime">
+    <div class="topbar">
+      <button class="back-btn" onclick="goBack()">‹</button>
+      <div class="topbar-title">เลือกวันและเวลา</div>
+      <div class="topbar-right"></div>
+    </div>
+    <div class="content">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+        <div class="buffer-pill" id="buffer-pill">โซน — · buffer — นาที</div>
+      </div>
+      <div class="calendar" id="calendar"></div>
+      <div id="timeslots-section" style="display:none;">
+        <hr class="divider">
+        <div class="section-label" style="padding:0;">เลือกเวลา</div>
+        <div class="time-slots" id="time-slots-container"></div>
+        <div id="time-summary-box" style="display:none;">
+          <div class="time-summary mt12">
+            <div class="time-summary-row">
+              <span class="label">เริ่มบริการ</span>
+              <span class="value" id="ts-start">—</span>
+            </div>
+            <div class="time-summary-row">
+              <span class="label">เสร็จบริการ</span>
+              <span class="value" id="ts-end">—</span>
+            </div>
+            <div class="time-summary-row">
+              <span class="label">เดินทาง</span>
+              <span class="value" id="ts-buffer">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary mt20" onclick="goToConfirmation()">ถัดไป — สรุปการจอง →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SCREEN 7: CONFIRMATION ═══════════════════ -->
+  <div class="screen" id="screen-confirm">
+    <div class="topbar">
+      <button class="back-btn" onclick="goBack()">‹</button>
+      <div class="topbar-title">สรุปการจอง</div>
+      <div class="topbar-right"></div>
+    </div>
+    <div class="content">
+      <div class="confirm-card" id="confirm-card">
+        <div class="confirm-brand">
+          <div class="confirm-brand-name">THE<br>CAT AND CALM</div>
+          <div class="confirm-tagline">Cat Spa at Home. With love, With care.</div>
+        </div>
+        <hr class="divider">
+        <div id="confirm-info-rows"></div>
+        <hr class="divider">
+        <div id="confirm-cats-rows"></div>
+        <hr class="divider">
+        <div class="confirm-logo">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M24 8 C14 8 7 16 7 24 C7 34 14 42 24 42 C34 42 41 34 41 24 C41 16 34 8 24 8Z" fill="#3a2e28" opacity=".08"/>
+            <path d="M16 18 C16 18 14 12 12 14 C10 16 14 20 16 20Z M32 18 C32 18 34 12 36 14 C38 16 34 20 32 20Z" fill="#3a2e28"/>
+            <ellipse cx="24" cy="26" rx="10" ry="9" fill="#3a2e28"/>
+            <circle cx="20" cy="24" r="1.5" fill="#f5f2ee"/>
+            <circle cx="28" cy="24" r="1.5" fill="#f5f2ee"/>
+            <path d="M21 28 Q24 30 27 28" stroke="#f5f2ee" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <path d="M24 10 L24.5 12 L26.5 12 L25 13.5 L25.7 15.5 L24 14.2 L22.3 15.5 L23 13.5 L21.5 12 L23.5 12 Z" fill="#3a2e28"/>
+          </svg>
+        </div>
+      </div>
+      <button class="btn-primary" id="save-btn" onclick="saveBooking()">✓ บันทึกลง Google Sheets</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ PLACEHOLDER: SCHEDULE ═══════════════════ -->
+  <div class="screen" id="screen-schedule">
+    <div class="topbar">
+      <button class="back-btn" onclick="showScreen('screen-home')">‹</button>
+      <div class="topbar-title">ตารางนัดหมาย</div>
+      <div class="topbar-right"></div>
+    </div>
+    <div class="placeholder-screen">
+      <div class="placeholder-icon">📅</div>
+      <div class="placeholder-text">กำลังพัฒนา</div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('screen-home')"><div class="nav-icon">🏠</div><div class="nav-label">หลัก</div></div>
+      <div class="nav-item active"><div class="nav-icon">📅</div><div class="nav-label">นัดหมาย</div></div>
+      <div class="nav-item" onclick="showScreen('screen-customers')"><div class="nav-icon">🐱</div><div class="nav-label">ลูกค้า</div></div>
+      <div class="nav-item" onclick="showScreen('screen-report')"><div class="nav-icon">📊</div><div class="nav-label">รายงาน</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ PLACEHOLDER: CUSTOMERS ═══════════════════ -->
+  <div class="screen" id="screen-customers">
+    <div class="topbar">
+      <button class="back-btn" onclick="showScreen('screen-home')">‹</button>
+      <div class="topbar-title">ลูกค้า</div>
+      <div class="topbar-right"></div>
+    </div>
+    <div class="placeholder-screen">
+      <div class="placeholder-icon">🐱</div>
+      <div class="placeholder-text">กำลังพัฒนา</div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('screen-home')"><div class="nav-icon">🏠</div><div class="nav-label">หลัก</div></div>
+      <div class="nav-item" onclick="showScreen('screen-schedule')"><div class="nav-icon">📅</div><div class="nav-label">นัดหมาย</div></div>
+      <div class="nav-item active"><div class="nav-icon">🐱</div><div class="nav-label">ลูกค้า</div></div>
+      <div class="nav-item" onclick="showScreen('screen-report')"><div class="nav-icon">📊</div><div class="nav-label">รายงาน</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ PLACEHOLDER: REPORT ═══════════════════ -->
+  <div class="screen" id="screen-report">
+    <div class="topbar">
+      <button class="back-btn" onclick="showScreen('screen-home')">‹</button>
+      <div class="topbar-title">รายงาน</div>
+      <div class="topbar-right"></div>
+    </div>
+    <div class="placeholder-screen">
+      <div class="placeholder-icon">📊</div>
+      <div class="placeholder-text">กำลังพัฒนา</div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('screen-home')"><div class="nav-icon">🏠</div><div class="nav-label">หลัก</div></div>
+      <div class="nav-item" onclick="showScreen('screen-schedule')"><div class="nav-icon">📅</div><div class="nav-label">นัดหมาย</div></div>
+      <div class="nav-item" onclick="showScreen('screen-customers')"><div class="nav-icon">🐱</div><div class="nav-label">ลูกค้า</div></div>
+      <div class="nav-item active"><div class="nav-icon">📊</div><div class="nav-label">รายงาน</div></div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIGURATION
+// ═══════════════════════════════════════════════════════
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2EtxCwf5quu3LRnLPJjSDuqtTsVM3y4e5ghTAUdIMldgC5lpJW8oEF1oWxHqyqK8G/exec';
+const ANTHROPIC_API_KEY = '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';
+
+// ═══════════════════════════════════════════════════════
+// SERVICE DURATIONS (minutes)
+// ═══════════════════════════════════════════════════════
+const SERVICE_DURATION = {
+  'Essential Bath': 90,
+  'Deep Clean Reset': 110,
+  'Signature Spa': 140
+};
+
+// ZONE TRAVEL BUFFER (minutes)
+const ZONE_BUFFER = {
+  same: 30,
+  diff: 60
+};
+
+// ═══════════════════════════════════════════════════════
+// BOOKING STATE
+// ═══════════════════════════════════════════════════════
+let state = {
+  isNewCustomer: true,
+  customer: null,     // { name, phone, address, district, zone }
+  cats: [],           // [{ catName, weight, coat, breed, service }]
+  selectedZone: null,
+  selectedDate: null,
+  selectedTime: null,
+  calYear: null,
+  calMonth: null,
+  bookingsByDate: {}  // cache
+};
+
+// History stack for back navigation
+let screenHistory = ['screen-home'];
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (screenHistory[screenHistory.length - 1] !== id) {
+    screenHistory.push(id);
+  }
+  window.scrollTo(0, 0);
+}
+
+function goBack() {
+  if (screenHistory.length > 1) {
+    screenHistory.pop();
+    const prev = screenHistory[screenHistory.length - 1];
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(prev).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+}
+
+function startNewBooking() {
+  // Reset state
+  state.isNewCustomer = true;
+  state.customer = null;
+  state.cats = [];
+  state.selectedZone = null;
+  state.selectedDate = null;
+  state.selectedTime = null;
+  screenHistory = ['screen-home'];
+  showScreen('screen-customer-type');
+}
+
+// ═══════════════════════════════════════════════════════
+// SCREEN 2 — CUSTOMER TYPE
+// ═══════════════════════════════════════════════════════
+function goToNewCustomer() {
+  state.isNewCustomer = true;
+  showScreen('screen-new-customer');
+  // reset AI section
+  document.getElementById('ai-result-section').style.display = 'none';
+  document.getElementById('line-paste').value = '';
+}
+
+let returningSearchOpen = false;
+function toggleReturningSearch() {
+  returningSearchOpen = !returningSearchOpen;
+  const area = document.getElementById('returning-search-area');
+  const card = document.getElementById('returning-choice');
+  area.style.display = returningSearchOpen ? 'block' : 'none';
+  card.classList.toggle('selected', returningSearchOpen);
+  if (returningSearchOpen) {
+    document.getElementById('phone-search-input').focus();
+    document.getElementById('phone-search-input').value = '';
+    document.getElementById('search-result').innerHTML = '';
+  }
+}
+
+let searchTimer = null;
+function searchCustomer(phone) {
+  clearTimeout(searchTimer);
+  const res = document.getElementById('search-result');
+  if (phone.length < 5) { res.innerHTML = ''; return; }
+  searchTimer = setTimeout(async () => {
+    res.innerHTML = '<p style="color:var(--muted);font-size:13px;margin-top:12px;">กำลังค้นหา...</p>';
+    try {
+      const data = await apiFetch('searchCustomer', { phone });
+      if (data && data.customer) {
+        renderCustomerResult(data);
+      } else {
+        res.innerHTML = '<p style="color:var(--muted);font-size:13px;margin-top:12px;">ไม่พบข้อมูลลูกค้า</p>';
+      }
+    } catch(e) {
+      res.innerHTML = '<p style="color:var(--error);font-size:13px;margin-top:12px;">เกิดข้อผิดพลาด</p>';
+    }
+  }, 500);
+}
+
+function renderCustomerResult(data) {
+  const { customer, cats } = data;
+  const catPills = (cats || []).map(c => `<span class="cat-pill">🐱 ${c.catName}</span>`).join('');
+  document.getElementById('search-result').innerHTML = `
+    <div class="result-card">
+      <div class="result-name">${esc(customer.name)}</div>
+      <div class="result-phone">${esc(customer.phone)}</div>
+      <div class="result-address">${esc(customer.address)}</div>
+      <div class="cat-pills">${catPills}</div>
+      <button class="btn-primary mt12" onclick="selectReturningCustomer()">เลือกลูกค้ารายนี้</button>
+    </div>
+  `;
+  window._foundCustomer = { customer, cats };
+}
+
+function selectReturningCustomer() {
+  if (!window._foundCustomer) return;
+  const { customer, cats } = window._foundCustomer;
+  state.isNewCustomer = false;
+  state.customer = {
+    id: customer.customerId,
+    name: customer.name,
+    phone: customer.phone,
+    address: customer.address,
+    district: customer.district,
+    zone: customer.zone
+  };
+  state.cats = (cats || []).map(c => ({
+    catId: c.catId,
+    catName: c.catName,
+    breed: c.breed,
+    weight: parseFloat(c.weight),
+    coat: c.coat,
+    service: null
+  }));
+  goToServices();
+}
+
+// ═══════════════════════════════════════════════════════
+// SCREEN 3 — AI PARSING
+// ═══════════════════════════════════════════════════════
+async function parseWithAI() {
+  const text = document.getElementById('line-paste').value.trim();
+  if (!text) { showToast('กรุณาวางข้อความก่อน'); return; }
+
+  const btn = document.getElementById('ai-parse-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>กำลังวิเคราะห์...';
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        messages: [{
+          role: 'user',
+          content: `Extract from this Thai text: 1) customer name, 2) phone number, 3) full address, 4) for each cat: cat name, weight in kg, coat length (ยาว/สั้น), breed. Return as JSON only, no explanation. Format: {"customerName":"","phone":"","address":"","cats":[{"catName":"","weight":0,"coat":"","breed":""}]}\n\nText:\n${text}`
+        }]
+      })
+    });
+    const json = await response.json();
+    const raw = json.content?.[0]?.text || '';
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('No JSON');
+    const parsed = JSON.parse(match[0]);
+
+    document.getElementById('nc-name').value = parsed.customerName || '';
+    document.getElementById('nc-phone').value = parsed.phone || '';
+    document.getElementById('nc-address').value = parsed.address || '';
+
+    // Render cat fields
+    state.cats = (parsed.cats || []).map(c => ({
+      catName: c.catName || '',
+      breed: c.breed || '',
+      weight: parseFloat(c.weight) || 0,
+      coat: c.coat || 'สั้น',
+      service: null
+    }));
+    renderNewCatFields();
+    document.getElementById('ai-result-section').style.display = 'block';
+    showToast('AI ดึงข้อมูลสำเร็จ ✓');
+  } catch(e) {
+    showToast('เกิดข้อผิดพลาด กรุณาลองใหม่');
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✦ ให้ AI ดึงข้อมูล';
+  }
+}
+
+function renderNewCatFields() {
+  const container = document.getElementById('nc-cats-container');
+  container.innerHTML = state.cats.map((cat, i) => `
+    <div class="cat-card" id="nc-cat-${i}">
+      <div class="cat-card-header">
+        <div class="cat-card-name">🐱 น้องแมว ${i + 1}</div>
+        <button class="remove-btn" onclick="removeNewCat(${i})">− ลบ</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ชื่อน้องแมว</label>
+        <input class="form-input" value="${esc(cat.catName)}" onchange="updateNewCat(${i},'catName',this.value)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">สายพันธุ์</label>
+        <input class="form-input" value="${esc(cat.breed)}" onchange="updateNewCat(${i},'breed',this.value)">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="form-label">น้ำหนัก (กก.)</label>
+          <input class="form-input" type="number" step="0.1" value="${cat.weight}" onchange="updateNewCat(${i},'weight',parseFloat(this.value))">
+        </div>
+        <div class="form-group">
+          <label class="form-label">ลักษณะขน</label>
+          <select class="form-input" onchange="updateNewCat(${i},'coat',this.value)">
+            <option value="สั้น" ${cat.coat==='สั้น'?'selected':''}>สั้น</option>
+            <option value="ยาว" ${cat.coat==='ยาว'?'selected':''}>ยาว</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateNewCat(i, field, value) {
+  state.cats[i][field] = value;
+}
+
+function removeNewCat(i) {
+  state.cats.splice(i, 1);
+  renderNewCatFields();
+}
+
+function confirmNewCustomer() {
+  const name = document.getElementById('nc-name').value.trim();
+  const phone = document.getElementById('nc-phone').value.trim();
+  const address = document.getElementById('nc-address').value.trim();
+  if (!name || !phone || !address) { showToast('กรุณากรอกข้อมูลให้ครบ'); return; }
+  if (state.cats.length === 0) { showToast('กรุณาเพิ่มข้อมูลน้องแมวอย่างน้อย 1 ตัว'); return; }
+
+  state.customer = { name, phone, address, district: '', zone: '' };
+  goToServices();
+}
+
+// ═══════════════════════════════════════════════════════
+// SCREEN 4 — SERVICE SELECTION
+// ═══════════════════════════════════════════════════════
+function goToServices() {
+  renderServiceCats();
+  updateDuration();
+  showScreen('screen-services');
+}
+
+function renderServiceCats() {
+  const container = document.getElementById('service-cats-container');
+  container.innerHTML = state.cats.map((cat, i) => {
+    const size = getSizeLabel(cat.weight);
+    return `
+      <div class="cat-card" id="svc-cat-${i}">
+        <div class="cat-card-header">
+          <div>
+            <div class="cat-card-name">${esc(cat.catName || `น้องแมว ${i+1}`)}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;">${esc(cat.breed || '')} · ${cat.coat || ''}</div>
+          </div>
+          <button class="remove-btn" onclick="removeCatFromBooking(${i})">− ลบ</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;color:var(--muted);">
+          น้ำหนัก: <strong style="color:var(--text)">${cat.weight} กก.</strong>
+          <span class="size-badge">${size}</span>
+        </div>
+        <div>
+          <div class="form-label">บริการ</div>
+          <div class="service-chips">
+            ${['Essential Bath','Deep Clean Reset','Signature Spa'].map(svc => `
+              <button class="service-chip ${cat.service===svc?'selected':''}" onclick="selectService(${i},'${svc}')">${svc}</button>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function getSizeLabel(weight) {
+  if (weight < 3) return 'S';
+  if (weight <= 5) return 'M';
+  if (weight <= 7) return 'L';
+  return 'XL';
+}
+
+function selectService(catIndex, service) {
+  state.cats[catIndex].service = service;
+  renderServiceCats();
+  updateDuration();
+}
+
+function removeCatFromBooking(i) {
+  state.cats.splice(i, 1);
+  renderServiceCats();
+  updateDuration();
+}
+
+function addCatManually() {
+  state.cats.push({ catName: '', breed: '', weight: 4, coat: 'สั้น', service: null });
+  renderServiceCats();
+  updateDuration();
+  // scroll to bottom of container
+  setTimeout(() => {
+    const last = document.getElementById(`svc-cat-${state.cats.length - 1}`);
+    if (last) last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 50);
+}
+
+function updateDuration() {
+  const total = state.cats.reduce((sum, cat) => sum + (SERVICE_DURATION[cat.service] || 0), 0);
+  const el = document.getElementById('total-duration');
+  if (total === 0) {
+    el.textContent = '— นาที';
+  } else {
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    el.textContent = h > 0 ? `${h} ชม. ${m} นาที` : `${total} นาที`;
+  }
+}
+
+function goToZone() {
+  const unselected = state.cats.find(c => !c.service);
+  if (unselected) { showToast('กรุณาเลือกบริการให้ครบทุกตัว'); return; }
+  if (state.cats.length === 0) { showToast('กรุณาเพิ่มน้องแมวอย่างน้อย 1 ตัว'); return; }
+  // Set address ref
+  document.getElementById('zone-address-ref').textContent = state.customer?.address || '—';
+  showScreen('screen-zone');
+}
+
+// ═══════════════════════════════════════════════════════
+// SCREEN 5 — ZONE
+// ═══════════════════════════════════════════════════════
+function selectZone(zone) {
+  state.selectedZone = zone;
+  // Update UI
+  ['A','B','C','D'].forEach(z => {
+    document.getElementById(`zone-${z}`).classList.toggle('selected', zone === z);
+  });
+  document.getElementById('zone-none').classList.toggle('selected', zone === 'ไม่มีโซน');
+  // Load zone bookings info
+  loadZoneBookingsInfo(zone);
+}
+
+async function loadZoneBookingsInfo(zone) {
+  const infoEl = document.getElementById('zone-bookings-info');
+  infoEl.innerHTML = '';
+  const todayStr = formatDateDDMMYYYY(new Date());
+  try {
+    const data = await apiFetch('getBookingsByDate', { date: todayStr });
+    const bookings = (data?.bookings || []).filter(b => b.zone === zone && b.status !== 'ยกเลิก');
+    if (bookings.length > 0) {
+      const rows = bookings.map(b => `<div>⏰ ${b.startTime} – ${b.endTime} · ${esc(b.customerName)} · ${esc(b.zone)}</div>`).join('');
+      infoEl.innerHTML = `<div class="info-box"><div class="info-box-title">📍 นัดวันนี้ในโซน ${zone}</div>${rows}</div>`;
+    }
+  } catch(e) { /* silently ignore */ }
+}
+
+function goToDateTime() {
+  if (!state.selectedZone) { showToast('กรุณาเลือกโซนก่อน'); return; }
+  // Init calendar
+  const now = new Date();
+  state.calYear = now.getFullYear();
+  state.calMonth = now.getMonth();
+  renderCalendar();
+  // Buffer pill
+  document.getElementById('buffer-pill').textContent = `โซน ${state.selectedZone} · buffer ${state.selectedZone === 'ไม่มีโซน' ? 60 : 30} นาที`;
+  document.getElementById('timeslots-section').style.display = 'none';
+  document.getElementById('time-summary-box').style.display = 'none';
+  showScreen('screen-datetime');
+}
+
+// ═══════════════════════════════════════════════════════
+// SCREEN 6 — CALENDAR
+// ═══════════════════════════════════════════════════════
+const THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const THAI_DAYS = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+
+async function renderCalendar() {
+  const year = state.calYear;
+  const month = state.calMonth;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  // Fetch bookings for this month to highlight days
+  const bookedDays = new Set();
+  try {
+    // Fetch each day — too many requests; use range approach via getBookingsByDate for today only in demo
+    // For full calendar highlighting, we attempt first & last of month
+    for (let d = 1; d <= new Date(year, month+1, 0).getDate(); d++) {
+      const date = new Date(year, month, d);
+      const key = formatDateDDMMYYYY(date);
+      if (state.bookingsByDate[key]) {
+        if (state.bookingsByDate[key].length > 0) bookedDays.add(d);
+      }
+    }
+  } catch(e) {}
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+
+  let html = `
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+      <div class="cal-month">${THAI_MONTHS[month]} ${year + 543}</div>
+      <button class="cal-nav" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid">
+      ${THAI_DAYS.map(d => `<div class="cal-dow">${d}</div>`).join('')}
+  `;
+
+  for (let i = 0; i < firstDay; i++) html += `<div class="cal-day empty"></div>`;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d);
+    const isFriday = date.getDay() === 5;
+    const isPast = date < today;
+    const isToday = date.getTime() === today.getTime();
+    const hasBooking = bookedDays.has(d);
+    const selDate = state.selectedDate;
+    const isSelected = selDate && selDate.getFullYear()===year && selDate.getMonth()===month && selDate.getDate()===d;
+
+    let cls = 'cal-day';
+    if (isFriday) cls += ' friday';
+    else if (isPast) cls += ' past';
+    else if (isToday) cls += ' today';
+    if (hasBooking && !isPast) cls += ' has-booking';
+    if (isSelected) cls += ' selected';
+
+    const clickable = !isFriday && !isPast;
+    html += `<div class="${cls}" ${clickable ? `onclick="selectDate(${year},${month},${d})"` : ''}>${d}</div>`;
+  }
+
+  html += '</div>';
+  document.getElementById('calendar').innerHTML = html;
+}
+
+function changeMonth(dir) {
+  state.calMonth += dir;
+  if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; }
+  if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
+  renderCalendar();
+}
+
+async function selectDate(year, month, day) {
+  state.selectedDate = new Date(year, month, day);
+  state.selectedTime = null;
+  renderCalendar();
+  document.getElementById('timeslots-section').style.display = 'block';
+  document.getElementById('time-slots-container').innerHTML = '<p style="color:var(--muted);font-size:13px;">กำลังโหลด...</p>';
+  document.getElementById('time-summary-box').style.display = 'none';
+  await loadTimeSlots();
+}
+
+async function loadTimeSlots() {
+  const dateStr = formatDateDDMMYYYY(state.selectedDate);
+  let bookings = state.bookingsByDate[dateStr];
+  if (!bookings) {
+    try {
+      const data = await apiFetch('getBookingsByDate', { date: dateStr });
+      bookings = (data?.bookings || []).filter(b => b.status !== 'ยกเลิก');
+      state.bookingsByDate[dateStr] = bookings;
+    } catch(e) {
+      bookings = [];
+    }
+  }
+  renderTimeSlots(bookings);
+}
+
+function renderTimeSlots(bookings) {
+  const container = document.getElementById('time-slots-container');
+  const totalSvcMins = state.cats.reduce((sum, c) => sum + (SERVICE_DURATION[c.service] || 0), 0);
+  const bufferMins = getBuffer(state.selectedZone, state.selectedZone);
+  const now = new Date();
+  const isToday = state.selectedDate.toDateString() === now.toDateString();
+
+  // Build blocked ranges from existing bookings
+  const blockedRanges = bookings.map(b => {
+    const start = timeToMins(b.startTime);
+    const end = timeToMins(b.endTime);
+    const bBuffer = b.zone === state.selectedZone ? ZONE_BUFFER.same : ZONE_BUFFER.diff;
+    return { start, end: end + bBuffer, raw: b };
+  });
+
+  // Generate slots every 30 min from 10:00 to 19:00
+  const slots = [];
+  for (let m = 600; m < 19 * 60; m += 30) slots.push(m);
+
+  // Build output
+  let html = '';
+  let i = 0;
+  while (i < slots.length) {
+    const slotMins = slots[i];
+
+    // Skip past times
+    if (isToday && slotMins <= now.getHours() * 60 + now.getMinutes()) {
+      i++; continue;
+    }
+
+    // Check if this slot falls inside a blocked range
+    const overlapping = blockedRanges.filter(r => slotMins >= r.start && slotMins < r.end);
+    if (overlapping.length > 0) {
+      // Show as single blocked button spanning the range
+      const r = overlapping[0];
+      const rawB = r.raw;
+      const isSameZone = rawB.zone === state.selectedZone;
+      html += `
+        <div class="time-chip blocked">
+          <span>${minsToTime(r.raw.startTime ? timeToMins(r.raw.startTime) : r.start)} – ${minsToTime(r.end)} (เต็ม)</span>
+          ${isSameZone ? `<span class="zone-tag">โซน ${rawB.zone}</span>` : ''}
+        </div>
+      `;
+      // Skip all slots within this range
+      while (i < slots.length && slots[i] < r.end) i++;
+      continue;
+    }
+
+    // Check if new booking fits starting here
+    const endMins = slotMins + totalSvcMins + bufferMins;
+    const fits = endMins <= 19 * 60;
+    const noOverlap = blockedRanges.every(r => slotMins + totalSvcMins <= r.start || slotMins >= r.end);
+
+    if (fits && noOverlap) {
+      const isSelected = state.selectedTime === slotMins;
+      // Check if same-zone booking on this day
+      const sameZoneBooking = bookings.find(b => b.zone === state.selectedZone);
+      html += `
+        <button class="time-chip ${isSelected ? 'selected' : ''}" onclick="selectTime(${slotMins})">
+          ${minsToTime(slotMins)}
+          ${sameZoneBooking ? `<span class="zone-tag">โซน ${state.selectedZone}</span>` : ''}
+        </button>
+      `;
+    }
+    i++;
+  }
+
+  if (!html) html = '<p style="color:var(--muted);font-size:13px;">ไม่มีช่องว่างในวันนี้</p>';
+  container.innerHTML = html;
+}
+
+function selectTime(mins) {
+  state.selectedTime = mins;
+  const totalSvc = state.cats.reduce((sum, c) => sum + (SERVICE_DURATION[c.service] || 0), 0);
+  const buf = getBuffer(state.selectedZone, state.selectedZone);
+
+  document.getElementById('ts-start').textContent = minsToTime(mins);
+  document.getElementById('ts-end').textContent = minsToTime(mins + totalSvc);
+  document.getElementById('ts-buffer').textContent = `+${buf} นาที (ถึง ${minsToTime(mins + totalSvc + buf)})`;
+  document.getElementById('time-summary-box').style.display = 'block';
+
+  // Re-render slots to show selection
+  const dateStr = formatDateDDMMYYYY(state.selectedDate);
+  renderTimeSlots(state.bookingsByDate[dateStr] || []);
+}
+
+function getBuffer(zone, _) {
+  // Since we don't know previous zone, use same-zone buffer logic
+  // In practice, operator picks zone per booking; use 30 for same zone
+  return ZONE_BUFFER.same;
+}
+
+// ═══════════════════════════════════════════════════════
+// SCREEN 7 — CONFIRMATION
+// ═══════════════════════════════════════════════════════
+function goToConfirmation() {
+  if (!state.selectedDate) { showToast('กรุณาเลือกวันที่'); return; }
+  if (state.selectedTime === null) { showToast('กรุณาเลือกเวลา'); return; }
+  renderConfirmCard();
+  showScreen('screen-confirm');
+}
+
+function renderConfirmCard() {
+  const totalSvc = state.cats.reduce((sum, c) => sum + (SERVICE_DURATION[c.service] || 0), 0);
+  const startMins = state.selectedTime;
+  const endMins = startMins + totalSvc;
+  const dateFormatted = formatDateThai(state.selectedDate);
+
+  const infoRows = `
+    <div class="confirm-row"><span class="c-label">ชื่อผู้จอง</span><span class="c-value">${esc(state.customer.name)}</span></div>
+    <div class="confirm-row"><span class="c-label">วันที่</span><span class="c-value">${dateFormatted}</span></div>
+    <div class="confirm-row"><span class="c-label">เวลา</span><span class="c-value">${minsToTime(startMins)} – ${minsToTime(endMins)}</span></div>
+    <div class="confirm-row"><span class="c-label">ที่อยู่</span><span class="c-value">${esc(state.customer.address)}</span></div>
+  `;
+  document.getElementById('confirm-info-rows').innerHTML = infoRows;
+
+  const catRows = state.cats.map((cat, i) => `
+    ${i > 0 ? '<hr class="divider">' : ''}
+    <div class="confirm-row"><span class="c-label">ชื่อน้องแมว</span><span class="c-value">${esc(cat.catName)}</span></div>
+    <div class="confirm-row"><span class="c-label">ขน</span><span class="c-value">${esc(cat.coat)}</span></div>
+    <div class="confirm-row"><span class="c-label">น้ำหนัก</span><span class="c-value">${cat.weight} กก.</span></div>
+    <div class="confirm-row"><span class="c-label">บริการ</span><span class="c-value">${esc(cat.service)}</span></div>
+  `).join('');
+  document.getElementById('confirm-cats-rows').innerHTML = catRows;
+}
+
+async function saveBooking() {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>กำลังบันทึก...';
+
+  try {
+    const totalSvc = state.cats.reduce((sum, c) => sum + (SERVICE_DURATION[c.service] || 0), 0);
+    const startMins = state.selectedTime;
+    const endMins = startMins + totalSvc;
+    const startTime = minsToTime(startMins);
+    const endTime = minsToTime(endMins);
+    const dateStr = formatDateDDMMYYYY(state.selectedDate);
+    const dayOfWeek = getThaiDayOfWeek(state.selectedDate);
+
+    let customerId = state.customer.id || null;
+    let catIds = state.cats.map(c => c.catId).filter(Boolean);
+
+    // New customer: save customer + cats first
+    if (state.isNewCustomer) {
+      const cusResult = await apiFetch('saveNewCustomer', {
+        customerName: state.customer.name,
+        phone: state.customer.phone,
+        address: state.customer.address,
+        district: state.customer.district || '',
+        zone: state.selectedZone,
+        cats: state.cats.map(c => ({
+          catName: c.catName,
+          breed: c.breed,
+          weight: c.weight,
+          coat: c.coat
+        }))
+      });
+      customerId = cusResult.customerId;
+      catIds = cusResult.catIds;
+    }
+
+    const servicesText = state.cats.map(c => `${c.catName}: ${c.service}`).join(', ');
+
+    await apiFetch('saveBooking', {
+      customerId,
+      customerName: state.customer.name,
+      date: dateStr,
+      dayOfWeek,
+      startTime,
+      endTime,
+      zone: state.selectedZone,
+      catIds,
+      catCount: state.cats.length,
+      servicesText,
+      status: 'ยืนยัน'
+    });
+
+    showToast('บันทึกสำเร็จ ✓');
+    setTimeout(() => {
+      screenHistory = ['screen-home'];
+      showScreen('screen-home');
+      loadStats();
+    }, 2000);
+  } catch(e) {
+    showToast('เกิดข้อผิดพลาด กรุณาลองใหม่');
+    console.error(e);
+    btn.disabled = false;
+    btn.innerHTML = '✓ บันทึกลง Google Sheets';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// STATS (HOME)
+// ═══════════════════════════════════════════════════════
+async function loadStats() {
+  try {
+    const data = await apiFetch('getStats', {});
+    document.getElementById('stat-customers').textContent = data.totalCustomers ?? '—';
+    document.getElementById('stat-today').textContent = data.bookingsToday ?? '—';
+    document.getElementById('stat-week').textContent = data.bookingsThisWeek ?? '—';
+    document.getElementById('home-today-label').textContent = `วันนี้ มีนัด ${data.bookingsToday ?? 0} รายการ`;
+  } catch(e) {
+    // Keep dashes if API not configured
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// API HELPER
+// ═══════════════════════════════════════════════════════
+async function apiFetch(action, params) {
+  if (APPS_SCRIPT_URL === 'YOUR_URL_HERE') {
+    throw new Error('Apps Script URL not configured');
+  }
+  const res = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, ...params })
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════
+function timeToMins(t) {
+  if (!t) return 0;
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function minsToTime(m) {
+  const h = Math.floor(m / 60);
+  const min = m % 60;
+  return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
+}
+
+function formatDateDDMMYYYY(date) {
+  const d = String(date.getDate()).padStart(2,'0');
+  const m = String(date.getMonth()+1).padStart(2,'0');
+  const y = date.getFullYear();
+  return `${d}/${m}/${y}`;
+}
+
+function formatDateThai(date) {
+  const d = date.getDate();
+  const m = THAI_MONTHS[date.getMonth()];
+  const y = date.getFullYear() + 543;
+  return `วันที่ ${d} ${m} ${y}`;
+}
+
+const THAI_DOW = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+function getThaiDayOfWeek(date) {
+  return `วัน${THAI_DOW[date.getDay()]}`;
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+loadStats();
+</script>
+</body>
+</html>
