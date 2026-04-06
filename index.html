@@ -785,39 +785,27 @@
   <div class="screen" id="screen-new-customer">
     <div class="topbar">
       <button class="back-btn" onclick="goBack()">‹</button>
-      <div class="topbar-title">ลูกค้าใหม่ <span class="ai-badge">AI</span></div>
+      <div class="topbar-title">ลูกค้าใหม่</div>
       <div class="topbar-right"></div>
     </div>
     <div class="content">
       <div class="form-group">
-        <label class="form-label">วาง LINE ของลูกค้าที่นี่</label>
-        <textarea class="paste-area" id="line-paste" placeholder="ตัวอย่าง:
-ชื่อ: คุณมิ้ว สุขใจ
-เบอร์: 081-234-5678
-ที่อยู่: 99/5 ซอยลาดพร้าว 71 แขวงลาดพร้าว เขตลาดพร้าว กรุงเทพฯ 10230
-
-น้องแมว:
-1. มูมู่ เปอร์เซีย น้ำหนัก 4.5 กก. ขนยาว
-2. โมจิ อเมริกันช็อตแฮร์ น้ำหนัก 3.2 กก. ขนสั้น"></textarea>
+        <label class="form-label">ชื่อผู้จอง</label>
+        <input type="text" class="form-input" id="nc-name" placeholder="ชื่อ-นามสกุล">
       </div>
-      <button class="btn-primary" id="ai-parse-btn" onclick="parseWithAI()">✦ ให้ AI ดึงข้อมูล</button>
-      <div id="ai-result-section" style="display:none; margin-top:20px;">
-        <hr class="divider">
-        <div class="form-group">
-          <label class="form-label">ชื่อผู้จอง</label>
-          <input type="text" class="form-input" id="nc-name" placeholder="ชื่อ-นามสกุล">
-        </div>
-        <div class="form-group">
-          <label class="form-label">เบอร์โทรศัพท์</label>
-          <input type="tel" class="form-input" id="nc-phone" placeholder="0xx-xxx-xxxx">
-        </div>
-        <div class="form-group">
-          <label class="form-label">ที่อยู่</label>
-          <textarea class="form-textarea" id="nc-address" placeholder="ที่อยู่เต็ม"></textarea>
-        </div>
-        <div id="nc-cats-container"></div>
-        <button class="btn-primary mt16" onclick="confirmNewCustomer()">ยืนยัน — ไปเลือกบริการ →</button>
+      <div class="form-group">
+        <label class="form-label">เบอร์โทรศัพท์</label>
+        <input type="tel" class="form-input" id="nc-phone" placeholder="0xx-xxx-xxxx">
       </div>
+      <div class="form-group">
+        <label class="form-label">ที่อยู่</label>
+        <textarea class="form-textarea" id="nc-address" placeholder="ที่อยู่เต็ม"></textarea>
+      </div>
+      <hr class="divider">
+      <div class="section-label" style="padding:0;">น้องแมว</div>
+      <div id="nc-cats-container" class="mt12"></div>
+      <button class="dashed-btn mt8" onclick="addNewCat()">+ เพิ่มน้องแมว</button>
+      <button class="btn-primary mt16" onclick="confirmNewCustomer()">ยืนยัน — ไปเลือกบริการ →</button>
     </div>
   </div>
 
@@ -1093,10 +1081,17 @@ function startNewBooking() {
 // ═══════════════════════════════════════════════════════
 function goToNewCustomer() {
   state.isNewCustomer = true;
+  state.cats = [];
+  document.getElementById('nc-name').value = '';
+  document.getElementById('nc-phone').value = '';
+  document.getElementById('nc-address').value = '';
+  renderNewCatFields();
   showScreen('screen-new-customer');
-  // reset AI section
-  document.getElementById('ai-result-section').style.display = 'none';
-  document.getElementById('line-paste').value = '';
+}
+
+function addNewCat() {
+  state.cats.push({ catName: '', breed: '', weight: 4, coat: 'สั้น', service: null });
+  renderNewCatFields();
 }
 
 let returningSearchOpen = false;
