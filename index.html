@@ -1702,10 +1702,11 @@ async function apiFetch(action, params) {
   if (APPS_SCRIPT_URL === 'YOUR_URL_HERE') {
     throw new Error('Apps Script URL not configured');
   }
-  const res = await fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, ...params })
+  // Use GET + URL param to avoid CORS preflight entirely
+  const payload = encodeURIComponent(JSON.stringify({ action, ...params }));
+  const res = await fetch(`${APPS_SCRIPT_URL}?data=${payload}`, {
+    method: 'GET',
+    redirect: 'follow'
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
