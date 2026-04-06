@@ -488,14 +488,29 @@
   .cal-day {
     aspect-ratio: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    font-size: 14px;
+    border-radius: 10px;
+    font-size: 13px;
     cursor: pointer;
     position: relative;
     transition: background .1s;
+    gap: 2px;
   }
+  .cal-day-num { line-height: 1; }
+  .cal-zone-row { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; }
+  .cal-zone-pill {
+    font-size: 8px;
+    font-weight: 700;
+    background: var(--dark-brown);
+    color: #fff;
+    border-radius: 4px;
+    padding: 1px 3px;
+    line-height: 1.2;
+  }
+  .cal-day.fully-booked { background: #fdf0ef; }
+  .cal-day.fully-booked .cal-day-num { color: var(--error); }
   .cal-day.empty { pointer-events: none; }
   .cal-day.past { color: var(--border); pointer-events: none; }
   .cal-day.friday { color: var(--border); pointer-events: none; }
@@ -670,6 +685,64 @@
     vertical-align: middle;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Schedule tabs ── */
+  .sched-tab {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .sched-tab.active {
+    background: var(--dark-brown);
+    color: #fff;
+    border-color: var(--dark-brown);
+  }
+
+  /* ── Booking row card ── */
+  .booking-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .booking-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .booking-row-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .booking-row-time { font-size: 13px; color: var(--muted); }
+  .booking-row-date { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .booking-row-services { font-size: 12px; color: var(--text); }
+  .booking-status {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 10px;
+  }
+  .status-ยืนยัน  { background: #eef7f1; color: var(--success); }
+  .status-เสร็จสิ้น { background: #e8f4ff; color: #3a6fa8; }
+  .status-ยกเลิก  { background: #fdf0ef; color: var(--error); }
+  .status-เลื่อน   { background: var(--accent); color: var(--dark-brown); }
+
+  .date-group-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin: 16px 0 8px;
+  }
 
   /* ── Placeholder screen ── */
   .placeholder-screen {
@@ -941,16 +1014,21 @@
     </div>
   </div>
 
-  <!-- ═══════════════════ PLACEHOLDER: SCHEDULE ═══════════════════ -->
+  <!-- ═══════════════════ SCREEN: SCHEDULE ═══════════════════ -->
   <div class="screen" id="screen-schedule">
     <div class="topbar">
       <button class="back-btn" onclick="showScreen('screen-home')">‹</button>
       <div class="topbar-title">ตารางนัดหมาย</div>
       <div class="topbar-right"></div>
     </div>
-    <div class="placeholder-screen">
-      <div class="placeholder-icon">📅</div>
-      <div class="placeholder-text">กำลังพัฒนา</div>
+    <div class="content">
+      <!-- Filter tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;">
+        <button class="sched-tab active" id="tab-upcoming" onclick="filterSchedule('upcoming')">กำลังจะมา</button>
+        <button class="sched-tab" id="tab-today" onclick="filterSchedule('today')">วันนี้</button>
+        <button class="sched-tab" id="tab-all" onclick="filterSchedule('all')">ทั้งหมด</button>
+      </div>
+      <div id="schedule-list"><p style="color:var(--muted);font-size:13px;">กำลังโหลด...</p></div>
     </div>
     <div class="bottom-nav">
       <div class="nav-item" onclick="showScreen('screen-home')"><div class="nav-icon">🏠</div><div class="nav-label">หลัก</div></div>
@@ -960,16 +1038,17 @@
     </div>
   </div>
 
-  <!-- ═══════════════════ PLACEHOLDER: CUSTOMERS ═══════════════════ -->
+  <!-- ═══════════════════ SCREEN: CUSTOMERS ═══════════════════ -->
   <div class="screen" id="screen-customers">
     <div class="topbar">
       <button class="back-btn" onclick="showScreen('screen-home')">‹</button>
       <div class="topbar-title">ลูกค้า</div>
       <div class="topbar-right"></div>
     </div>
-    <div class="placeholder-screen">
-      <div class="placeholder-icon">🐱</div>
-      <div class="placeholder-text">กำลังพัฒนา</div>
+    <div class="content">
+      <input type="text" class="search-box" id="customer-search-input" placeholder="🔍 ค้นหาชื่อ หรือเบอร์โทร..." oninput="filterCustomers(this.value)">
+      <div id="customers-count" style="font-size:12px;color:var(--muted);margin:10px 0 4px;"></div>
+      <div id="customers-list" class="mt8"><p style="color:var(--muted);font-size:13px;">กำลังโหลด...</p></div>
     </div>
     <div class="bottom-nav">
       <div class="nav-item" onclick="showScreen('screen-home')"><div class="nav-icon">🏠</div><div class="nav-label">หลัก</div></div>
@@ -1052,6 +1131,8 @@ function showScreen(id) {
     screenHistory.push(id);
   }
   window.scrollTo(0, 0);
+  if (id === 'screen-schedule') loadSchedule();
+  if (id === 'screen-customers') loadCustomers();
 }
 
 function goBack() {
@@ -1368,27 +1449,29 @@ async function loadZoneBookingsInfo(zone) {
   infoEl.innerHTML = '';
   const todayStr = formatDateDDMMYYYY(new Date());
   try {
-    const data = await apiFetch('getBookingsByDate', { date: todayStr });
-    const bookings = (data?.bookings || []).filter(b => b.zone === zone && b.status !== 'ยกเลิก');
+    const data = await apiFetch('getAllBookings', {});
+    const bookings = (data?.bookings || []).filter(b => b.zone === zone && b.date === todayStr && b.status !== 'ยกเลิก');
     if (bookings.length > 0) {
-      const rows = bookings.map(b => `<div>⏰ ${b.startTime} – ${b.endTime} · ${esc(b.customerName)} · ${esc(b.zone)}</div>`).join('');
+      const rows = bookings.map(b => `<div>⏰ ${b.startTime} – ${b.endTime} · ${esc(b.customerName)}</div>`).join('');
       infoEl.innerHTML = `<div class="info-box"><div class="info-box-title">📍 นัดวันนี้ในโซน ${zone}</div>${rows}</div>`;
     }
   } catch(e) { /* silently ignore */ }
 }
 
-function goToDateTime() {
+async function goToDateTime() {
   if (!state.selectedZone) { showToast('กรุณาเลือกโซนก่อน'); return; }
-  // Init calendar
   const now = new Date();
   state.calYear = now.getFullYear();
   state.calMonth = now.getMonth();
-  renderCalendar();
-  // Buffer pill
+  state.selectedDate = null;
+  state.selectedTime = null;
   document.getElementById('buffer-pill').textContent = `โซน ${state.selectedZone} · buffer ${state.selectedZone === 'ไม่มีโซน' ? 60 : 30} นาที`;
   document.getElementById('timeslots-section').style.display = 'none';
   document.getElementById('time-summary-box').style.display = 'none';
+  document.getElementById('calendar').innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px;">กำลังโหลด...</p>';
   showScreen('screen-datetime');
+  await loadAllBookings();
+  renderCalendar();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1397,25 +1480,30 @@ function goToDateTime() {
 const THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 const THAI_DAYS = ['อา','จ','อ','พ','พฤ','ศ','ส'];
 
-async function renderCalendar() {
+// Fetch all bookings once when entering datetime screen, group by date
+async function loadAllBookings() {
+  try {
+    const data = await apiFetch('getAllBookings', {});
+    const bookings = (data?.bookings || []).filter(b => b.status !== 'ยกเลิก');
+    // Group into bookingsByDate cache
+    state.bookingsByDate = {};
+    bookings.forEach(b => {
+      if (!state.bookingsByDate[b.date]) state.bookingsByDate[b.date] = [];
+      state.bookingsByDate[b.date].push(b);
+    });
+    console.log('All bookings loaded:', bookings.length, 'grouped into', Object.keys(state.bookingsByDate).length, 'dates');
+  } catch(e) {
+    console.error('loadAllBookings failed:', e);
+  }
+}
+
+function renderCalendar() {
   const year = state.calYear;
   const month = state.calMonth;
   const today = new Date();
   today.setHours(0,0,0,0);
-
-  // Fetch bookings for this month to highlight days
-  const bookedDays = new Set();
-  try {
-    // Fetch each day — too many requests; use range approach via getBookingsByDate for today only in demo
-    // For full calendar highlighting, we attempt first & last of month
-    for (let d = 1; d <= new Date(year, month+1, 0).getDate(); d++) {
-      const date = new Date(year, month, d);
-      const key = formatDateDDMMYYYY(date);
-      if (state.bookingsByDate[key]) {
-        if (state.bookingsByDate[key].length > 0) bookedDays.add(d);
-      }
-    }
-  } catch(e) {}
+  const totalSvcMins = state.cats.reduce((sum, c) => sum + (SERVICE_DURATION[c.service] || 0), 0);
+  const bufferMins = ZONE_BUFFER.same;
 
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month+1, 0).getDate();
@@ -1437,23 +1525,56 @@ async function renderCalendar() {
     const isFriday = date.getDay() === 5;
     const isPast = date < today;
     const isToday = date.getTime() === today.getTime();
-    const hasBooking = bookedDays.has(d);
+    const dateStr = formatDateDDMMYYYY(date);
+    const dayBookings = (state.bookingsByDate[dateStr] || []);
+    const hasBooking = dayBookings.length > 0;
     const selDate = state.selectedDate;
     const isSelected = selDate && selDate.getFullYear()===year && selDate.getMonth()===month && selDate.getDate()===d;
+
+    // Check if fully booked (no slots fit)
+    const isFullyBooked = hasBooking && !isFriday && !isPast && checkFullyBooked(dayBookings, totalSvcMins, bufferMins, isToday ? new Date() : null);
+
+    // Collect zones booked that day
+    const zones = [...new Set(dayBookings.map(b => b.zone).filter(z => z && z !== 'ไม่มีโซน'))];
 
     let cls = 'cal-day';
     if (isFriday) cls += ' friday';
     else if (isPast) cls += ' past';
     else if (isToday) cls += ' today';
-    if (hasBooking && !isPast) cls += ' has-booking';
+    if (hasBooking && !isPast && !isFriday) cls += ' has-booking';
+    if (isFullyBooked) cls += ' fully-booked';
     if (isSelected) cls += ' selected';
 
+    const zonePills = zones.map(z => `<span class="cal-zone-pill">${z}</span>`).join('');
     const clickable = !isFriday && !isPast;
-    html += `<div class="${cls}" ${clickable ? `onclick="selectDate(${year},${month},${d})"` : ''}>${d}</div>`;
+
+    html += `
+      <div class="${cls}" ${clickable ? `onclick="selectDate(${year},${month},${d})"` : ''}>
+        <span class="cal-day-num">${d}</span>
+        ${zonePills ? `<div class="cal-zone-row">${zonePills}</div>` : ''}
+      </div>`;
   }
 
   html += '</div>';
   document.getElementById('calendar').innerHTML = html;
+}
+
+function checkFullyBooked(bookings, totalSvcMins, bufferMins, nowDate) {
+  // Returns true if no 30-min slot can fit a new booking
+  const blockedRanges = bookings.map(b => {
+    const start = timeToMins(b.startTime);
+    const end = timeToMins(b.endTime);
+    const buf = b.zone === state.selectedZone ? ZONE_BUFFER.same : ZONE_BUFFER.diff;
+    return { start, end: end + buf };
+  });
+  for (let m = 600; m < 19 * 60; m += 30) {
+    if (nowDate && m <= nowDate.getHours() * 60 + nowDate.getMinutes()) continue;
+    const endMins = m + totalSvcMins + bufferMins;
+    if (endMins > 19 * 60) continue;
+    const fits = blockedRanges.every(r => endMins <= r.start || m >= r.end);
+    if (fits) return false;
+  }
+  return true;
 }
 
 function changeMonth(dir) {
@@ -1475,16 +1596,9 @@ async function selectDate(year, month, day) {
 
 async function loadTimeSlots() {
   const dateStr = formatDateDDMMYYYY(state.selectedDate);
-  let bookings = state.bookingsByDate[dateStr];
-  if (!bookings) {
-    try {
-      const data = await apiFetch('getBookingsByDate', { date: dateStr });
-      bookings = (data?.bookings || []).filter(b => b.status !== 'ยกเลิก');
-      state.bookingsByDate[dateStr] = bookings;
-    } catch(e) {
-      bookings = [];
-    }
-  }
+  // Use cache from loadAllBookings (already fetched when entering screen)
+  const bookings = state.bookingsByDate[dateStr] || [];
+  console.log('Time slots for', dateStr, ':', bookings.length, 'bookings');
   renderTimeSlots(bookings);
 }
 
@@ -1527,7 +1641,7 @@ function renderTimeSlots(bookings) {
       const isSameZone = rawB.zone === state.selectedZone;
       html += `
         <div class="time-chip blocked">
-          <span>${minsToTime(r.raw.startTime ? timeToMins(r.raw.startTime) : r.start)} – ${minsToTime(r.end)} (เต็ม)</span>
+          <span>${r.raw.startTime || minsToTime(r.start)} – ${minsToTime(r.end)} (เต็ม)</span>
           ${isSameZone ? `<span class="zone-tag">โซน ${rawB.zone}</span>` : ''}
         </div>
       `;
@@ -1536,10 +1650,10 @@ function renderTimeSlots(bookings) {
       continue;
     }
 
-    // Check if new booking fits starting here
+    // Check if new booking fits starting here (service + buffer must not overlap any blocked range)
     const endMins = slotMins + totalSvcMins + bufferMins;
     const fits = endMins <= 19 * 60;
-    const noOverlap = blockedRanges.every(r => slotMins + totalSvcMins <= r.start || slotMins >= r.end);
+    const noOverlap = blockedRanges.every(r => endMins <= r.start || slotMins >= r.end);
 
     if (fits && noOverlap) {
       const isSelected = state.selectedTime === slotMins;
@@ -1667,6 +1781,8 @@ async function saveBooking() {
     });
 
     showToast('บันทึกสำเร็จ ✓');
+    // Clear booking cache so next booking sees updated slots
+    state.bookingsByDate = {};
     setTimeout(() => {
       screenHistory = ['screen-home'];
       showScreen('screen-home');
@@ -1678,6 +1794,155 @@ async function saveBooking() {
     btn.disabled = false;
     btn.innerHTML = '✓ บันทึกลง Google Sheets';
   }
+}
+
+// ═══════════════════════════════════════════════════════
+// SCHEDULE PAGE
+// ═══════════════════════════════════════════════════════
+let allBookings = [];
+let scheduleFilter = 'upcoming';
+
+async function loadSchedule() {
+  document.getElementById('schedule-list').innerHTML = '<p style="color:var(--muted);font-size:13px;">กำลังโหลด...</p>';
+  try {
+    const data = await apiFetch('getAllBookings', {});
+    allBookings = data.bookings || [];
+    renderSchedule();
+  } catch(e) {
+    document.getElementById('schedule-list').innerHTML = '<p style="color:var(--error);font-size:13px;">โหลดไม่สำเร็จ</p>';
+  }
+}
+
+function filterSchedule(filter) {
+  scheduleFilter = filter;
+  document.querySelectorAll('.sched-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${filter}`).classList.add('active');
+  renderSchedule();
+}
+
+function renderSchedule() {
+  const todayStr = formatDateDDMMYYYY(new Date());
+  const todayMins = new Date().getHours() * 60 + new Date().getMinutes();
+
+  let filtered = allBookings.filter(b => b.status !== 'ยกเลิก');
+
+  if (scheduleFilter === 'today') {
+    filtered = filtered.filter(b => b.date === todayStr);
+  } else if (scheduleFilter === 'upcoming') {
+    filtered = filtered.filter(b => {
+      if (b.date === todayStr) return timeToMins(b.startTime) >= todayMins;
+      return compareDateStr(b.date, todayStr) > 0;
+    });
+  }
+
+  // Sort by date then start time
+  filtered.sort((a, b) => {
+    const dc = compareDateStr(a.date, b.date);
+    if (dc !== 0) return dc;
+    return timeToMins(a.startTime) - timeToMins(b.startTime);
+  });
+
+  if (filtered.length === 0) {
+    document.getElementById('schedule-list').innerHTML = '<p style="color:var(--muted);font-size:13px;margin-top:20px;text-align:center;">ไม่มีนัดหมาย</p>';
+    return;
+  }
+
+  // Group by date
+  const groups = {};
+  filtered.forEach(b => {
+    if (!groups[b.date]) groups[b.date] = [];
+    groups[b.date].push(b);
+  });
+
+  let html = '';
+  Object.keys(groups).forEach(date => {
+    const label = date === todayStr ? '📅 วันนี้' : `${b_dayLabel(date)} · ${date}`;
+    html += `<div class="date-group-label">${label}</div>`;
+    groups[date].forEach(b => {
+      const statusCls = `status-${b.status}`;
+      html += `
+        <div class="booking-row">
+          <div class="booking-row-header">
+            <div class="booking-row-name">${esc(b.customerName)}</div>
+            <span class="booking-status ${statusCls}">${esc(b.status)}</span>
+          </div>
+          <div class="booking-row-time">⏰ ${b.startTime} – ${b.endTime} &nbsp;·&nbsp; โซน ${esc(b.zone)}</div>
+          <div class="booking-row-services mt8">${esc(b.services)}</div>
+        </div>
+      `;
+    });
+  });
+
+  document.getElementById('schedule-list').innerHTML = html;
+}
+
+function compareDateStr(a, b) {
+  // DD/MM/YYYY comparison
+  const pa = a.split('/'); const pb = b.split('/');
+  if (pa.length < 3 || pb.length < 3) return 0;
+  const da = new Date(+pa[2], +pa[1]-1, +pa[0]);
+  const db = new Date(+pb[2], +pb[1]-1, +pb[0]);
+  return da - db;
+}
+
+function b_dayLabel(dateStr) {
+  const p = dateStr.split('/');
+  if (p.length < 3) return dateStr;
+  const d = new Date(+p[2], +p[1]-1, +p[0]);
+  return THAI_DOW[d.getDay()] ? `วัน${THAI_DOW[d.getDay()]}` : '';
+}
+
+// ═══════════════════════════════════════════════════════
+// CUSTOMERS PAGE
+// ═══════════════════════════════════════════════════════
+let allCustomers = [];
+
+async function loadCustomers() {
+  document.getElementById('customers-list').innerHTML = '<p style="color:var(--muted);font-size:13px;">กำลังโหลด...</p>';
+  document.getElementById('customers-count').textContent = '';
+  try {
+    const data = await apiFetch('getAllCustomers', {});
+    allCustomers = data.customers || [];
+    renderCustomers(allCustomers);
+  } catch(e) {
+    document.getElementById('customers-list').innerHTML = '<p style="color:var(--error);font-size:13px;">โหลดไม่สำเร็จ</p>';
+  }
+}
+
+function filterCustomers(query) {
+  const q = query.toLowerCase().trim();
+  if (!q) { renderCustomers(allCustomers); return; }
+  const filtered = allCustomers.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.phone.replace(/[-\s]/g,'').includes(q.replace(/[-\s]/g,''))
+  );
+  renderCustomers(filtered);
+}
+
+function renderCustomers(list) {
+  document.getElementById('customers-count').textContent = `${list.length} ลูกค้า`;
+  if (list.length === 0) {
+    document.getElementById('customers-list').innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;margin-top:20px;">ไม่พบลูกค้า</p>';
+    return;
+  }
+  const html = list.map(c => {
+    const catPills = c.cats.map(cat => `<span class="cat-pill">🐱 ${esc(cat.catName)}</span>`).join('');
+    const zoneTag = c.zone && c.zone !== 'ไม่มีโซน'
+      ? `<span class="size-badge" style="margin-left:6px;">โซน ${esc(c.zone)}</span>` : '';
+    return `
+      <div class="result-card" style="margin-bottom:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="result-name">${esc(c.name)}${zoneTag}</div>
+          <div style="font-size:11px;color:var(--muted);">${esc(c.customerId)}</div>
+        </div>
+        <div class="result-phone">📞 ${esc(c.phone)}</div>
+        <div class="result-address" style="margin-top:4px;">📍 ${esc(c.address)}</div>
+        ${c.cats.length > 0 ? `<div class="cat-pills" style="margin-top:8px;">${catPills}</div>` : ''}
+        ${c.firstDate ? `<div style="font-size:11px;color:var(--muted);margin-top:6px;">ลูกค้าตั้งแต่ ${esc(c.firstDate)}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+  document.getElementById('customers-list').innerHTML = html;
 }
 
 // ═══════════════════════════════════════════════════════
