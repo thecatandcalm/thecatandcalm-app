@@ -5,31 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>The Cat and Calm</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/garet-font@1.0.0/garet.css" rel="stylesheet" onerror="this.onerror=null;">
+<link href="https://fonts.cdnfonts.com/css/garet" rel="stylesheet">
 <style>
-  /* ── Garet fallback via @font-face ── */
+  /* ── Garet via cdnfonts ── */
+  
   @font-face {
     font-family: 'Garet';
-    src: url('https://cdn.jsdelivr.net/gh/nicholasgasior/garet-font/Garet-Book.otf') format('opentype');
-    font-weight: 400;
-  }
-  @font-face {
-    font-family: 'Garet';
-    src: url('https://cdn.jsdelivr.net/gh/nicholasgasior/garet-font/Garet-Heavy.otf') format('opentype');
-    font-weight: 700;
+    font-weight: 600;
+    src: url('https://fonts.cdnfonts.com/s/57477/Garet-Bold.woff') format('woff');
   }
 
   :root {
     --brand: #d4c4ac;
     --bg: #ffffff;
-    --surface: #faf8f5;
-    --text: #2c2420;
+    --surface: #ffffff;
+    --text: #534031;
     --muted: #a09488;
-    --border: #e8e2da;
-    --accent: #ede5d8;
+    --border: #E4E2DD;
+    --accent: #d4c4ac;
     --success: #5a8a67;
     --error: #c0645a;
-    --dark-brown: #3a2e28;
+    --dark-brown: #534031;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -98,8 +94,8 @@
     padding: 36px 20px 20px;
   }
   .brand-name {
-    font-family: 'Garet', 'Georgia', serif;
-    font-weight: 700;
+    font-family: 'Garet';
+    font-weight: 600;
     font-size: 22px;
     letter-spacing: .25em;
     color: var(--dark-brown);
@@ -412,7 +408,7 @@
     font-size: 28px;
     font-weight: 700;
     color: var(--dark-brown);
-    font-family: 'Garet', serif;
+    font-family: 'Garet';
   }
   .zone-name { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 2px; }
   .zone-areas { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
@@ -584,7 +580,7 @@
 
   /* ── Confirmation card ── */
   .confirm-card {
-    background: #f5f2ee;
+    background: #d4c4ac;
     border-radius: 20px;
     padding: 24px 20px;
     margin-bottom: 20px;
@@ -596,7 +592,7 @@
   .confirm-brand-name {
     font-family: 'Garet', 'Georgia', serif;
     font-size: 18px;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: .2em;
     color: var(--dark-brown);
     text-transform: uppercase;
@@ -604,7 +600,7 @@
   }
   .confirm-tagline {
     font-size: 11px;
-    color: var(--muted);
+    color: var(--bg);
     margin-top: 6px;
     font-style: italic;
   }
@@ -612,11 +608,11 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding: 8px 0;
+    padding: 3px 0;
     font-size: 13px;
   }
-  .confirm-row .c-label { color: var(--muted); flex-shrink: 0; margin-right: 12px; }
-  .confirm-row .c-value { color: var(--text); font-weight: 500; text-align: right; flex: 1; }
+  .confirm-row .c-label { color: var(--bg); flex-shrink: 0; margin-right: 12px; }
+  .confirm-row .c-value { color: var(--bg); font-weight: 500; text-align: right; flex: 1; }
   .confirm-logo {
     text-align: center;
     margin-top: 16px;
@@ -770,7 +766,8 @@
   <!-- ════════════════════════════ SCREEN 1: HOME ════════════════════════════ -->
   <div class="screen active" id="screen-home">
     <div class="brand-header">
-      <div class="brand-name">THE<br>CAT AND CALM</div>
+      <img src="https://drive.google.com/uc?export=view&id=18nFFpEIECXHKbjIXCGl_p3jG8xABHsiU" alt="The Cat and Calm logo" style="width:64px;height:64px;object-fit:contain;margin-bottom:10px;">
+      <div><img src="https://drive.google.com/uc?export=view&id=1iHwWqDU583_h9034QIYAFQo_kEAwWGCG" alt="The Cat and Calm" style="width:160px;object-fit:contain;display:block;margin:0 auto;"></div>
       <div class="brand-subtitle" id="home-today-label">วันนี้ มีนัด — รายการ</div>
     </div>
     <hr class="divider" style="margin: 0 20px;">
@@ -990,7 +987,8 @@
     <div class="content">
       <div class="confirm-card" id="confirm-card">
         <div class="confirm-brand">
-          <div class="confirm-brand-name">THE<br>CAT AND CALM</div>
+          <img src="https://drive.google.com/uc?export=view&id=18nFFpEIECXHKbjIXCGl_p3jG8xABHsiU" alt="The Cat and Calm logo" style="width:48px;height:48px;object-fit:contain;margin-bottom:8px;">
+          <div><img src="https://drive.google.com/uc?export=view&id=1iHwWqDU583_h9034QIYAFQo_kEAwWGCG" alt="The Cat and Calm" style="width:130px;object-fit:contain;display:block;margin:0 auto;"></div>
           <div class="confirm-tagline">Cat Spa at Home. With love, With care.</div>
         </div>
         <hr class="divider">
@@ -999,15 +997,7 @@
         <div id="confirm-cats-rows"></div>
         <hr class="divider">
         <div class="confirm-logo">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M24 8 C14 8 7 16 7 24 C7 34 14 42 24 42 C34 42 41 34 41 24 C41 16 34 8 24 8Z" fill="#3a2e28" opacity=".08"/>
-            <path d="M16 18 C16 18 14 12 12 14 C10 16 14 20 16 20Z M32 18 C32 18 34 12 36 14 C38 16 34 20 32 20Z" fill="#3a2e28"/>
-            <ellipse cx="24" cy="26" rx="10" ry="9" fill="#3a2e28"/>
-            <circle cx="20" cy="24" r="1.5" fill="#f5f2ee"/>
-            <circle cx="28" cy="24" r="1.5" fill="#f5f2ee"/>
-            <path d="M21 28 Q24 30 27 28" stroke="#f5f2ee" stroke-width="1" fill="none" stroke-linecap="round"/>
-            <path d="M24 10 L24.5 12 L26.5 12 L25 13.5 L25.7 15.5 L24 14.2 L22.3 15.5 L23 13.5 L21.5 12 L23.5 12 Z" fill="#3a2e28"/>
-          </svg>
+          <img src="https://drive.google.com/uc?export=view&id=18nFFpEIECXHKbjIXCGl_p3jG8xABHsiU" alt="The Cat and Calm" style="width:40px;height:40px;object-fit:contain;opacity:0.7;">
         </div>
       </div>
       <button class="btn-primary" id="save-btn" onclick="saveBooking()">✓ บันทึกลง Google Sheets</button>
