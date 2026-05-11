@@ -587,22 +587,24 @@
   }
   .confirm-brand {
     text-align: center;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
   }
-  .confirm-brand-name {
-    font-family: 'Garet', 'Georgia', serif;
-    font-size: 18px;
+  .confirm-booking-en {
+    font-family: 'Garet', sans-serif;
+    font-size: 15px;
     font-weight: 600;
-    letter-spacing: .2em;
-    color: var(--dark-brown);
-    text-transform: uppercase;
-    line-height: 1.3;
+    letter-spacing: .08em;
+    color: #ffffff;
+    margin-top: 4px;
   }
-  .confirm-tagline {
-    font-size: 11px;
-    color: var(--bg);
-    margin-top: 6px;
-    font-style: italic;
+  .confirm-booking-th {
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.85);
+    margin-top: 2px;
+  }
+  .confirm-card .divider {
+    border-top-color: rgba(255,255,255,0.35);
   }
   .confirm-row {
     display: flex;
@@ -766,8 +768,7 @@
   <!-- ════════════════════════════ SCREEN 1: HOME ════════════════════════════ -->
   <div class="screen active" id="screen-home">
     <div class="brand-header">
-      <img src="https://drive.google.com/uc?export=view&id=1olyOqWmLuEfa33CVFf4_k9P9sJcUE27P" alt="The Cat and Calm logo" style="width:64px;height:64px;object-fit:contain;margin-bottom:10px;">
-      <div><img src="https://drive.google.com/uc?export=view&id=1iHwWqDU583_h9034QIYAFQo_kEAwWGCG" alt="The Cat and Calm" style="width:160px;object-fit:contain;display:block;margin:0 auto;"></div>
+      <img src="https://lh3.googleusercontent.com/d/1olyOqWmLuEfa33CVFf4_k9P9sJcUE27P" alt="The Cat and Calm" style="width:180px;object-fit:contain;display:block;margin:0 auto 12px;">
       <div class="brand-subtitle" id="home-today-label">วันนี้ มีนัด — รายการ</div>
     </div>
     <hr class="divider" style="margin: 0 20px;">
@@ -987,9 +988,9 @@
     <div class="content">
       <div class="confirm-card" id="confirm-card">
         <div class="confirm-brand">
-          <img src="https://drive.google.com/uc?export=view&id=1olyOqWmLuEfa33CVFf4_k9P9sJcUE27P" alt="The Cat and Calm logo" style="width:48px;height:48px;object-fit:contain;margin-bottom:8px;">
-          <div><img src="https://drive.google.com/uc?export=view&id=1olyOqWmLuEfa33CVFf4_k9P9sJcUE27P" alt="The Cat and Calm" style="width:130px;object-fit:contain;display:block;margin:0 auto;"></div>
-          <div class="confirm-tagline">Cat Spa at Home. With love, With care.</div>
+          <img src="https://lh3.googleusercontent.com/d/1MbBywmUkqFQTJBvqGkq_9xaNl44jjCl_" alt="The Cat and Calm" style="width:160px;object-fit:contain;display:block;margin:0 auto 12px;filter:brightness(0) invert(1);">
+          <div class="confirm-booking-en">Booking Summary</div>
+          <div class="confirm-booking-th">สรุปการจอง</div>
         </div>
         <hr class="divider">
         <div id="confirm-info-rows"></div>
@@ -997,7 +998,7 @@
         <div id="confirm-cats-rows"></div>
         <hr class="divider">
         <div class="confirm-logo">
-          <img src="https://drive.google.com/uc?export=view&id=1olyOqWmLuEfa33CVFf4_k9P9sJcUE27P" alt="The Cat and Calm" style="width:40px;height:40px;object-fit:contain;opacity:0.7;">
+          <img src="https://lh3.googleusercontent.com/d/18nFFpEIECXHKbjIXCGl_p3jG8xABHsiU" alt="The Cat and Calm" style="width:64px;height:64px;object-fit:contain;filter:brightness(0) invert(1);">
         </div>
       </div>
       <button class="btn-primary" id="save-btn" onclick="saveBooking()">✓ บันทึกลง Google Sheets</button>
