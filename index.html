@@ -581,7 +581,7 @@
   /* ── Confirmation card ── */
   .confirm-card {
     background: #d4c4ac;
-    border-radius: 20px;
+    border-radius: 0px;
     padding: 24px 20px;
     margin-bottom: 20px;
   }
@@ -1500,7 +1500,7 @@ async function goToDateTime() {
 // SCREEN 6 — CALENDAR
 // ═══════════════════════════════════════════════════════
 const THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-const THAI_DAYS = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+const THAI_DAYS = ['จ','อ','พ','พฤ','ศ','ส','อา'];
 
 // Fetch all bookings once when entering datetime screen, group by date
 async function loadAllBookings() {
@@ -1527,7 +1527,7 @@ function renderCalendar() {
   const totalSvcMins = state.cats.reduce((sum, c) => sum + (SERVICE_DURATION[c.service] || 0), 0);
   const bufferMins = ZONE_BUFFER.same;
 
-  const firstDay = new Date(year, month, 1).getDay();
+  const firstDay = (new Date(year, month, 1).getDay() + 6) % 7; // Mon=0 … Sun=6
   const daysInMonth = new Date(year, month+1, 0).getDate();
 
   let html = `
@@ -1872,11 +1872,14 @@ function renderSchedule() {
     });
   }
 
-  // Sort by date then start time
+  // upcoming: oldest first (soonest next); all/today: most recent first
+  const asc = (scheduleFilter === 'upcoming');
   filtered.sort((a, b) => {
-    const dc = compareDateStr(a.date, b.date);
+    const dc = asc ? compareDateStr(a.date, b.date) : compareDateStr(b.date, a.date);
     if (dc !== 0) return dc;
-    return timeToMins(a.startTime) - timeToMins(b.startTime);
+    return asc
+      ? timeToMins(a.startTime) - timeToMins(b.startTime)
+      : timeToMins(b.startTime) - timeToMins(a.startTime);
   });
 
   if (filtered.length === 0) {
