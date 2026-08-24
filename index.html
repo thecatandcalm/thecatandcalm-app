@@ -509,11 +509,11 @@
   .cal-day.fully-booked .cal-day-num { color: var(--error); }
   .cal-day.empty { pointer-events: none; }
   .cal-day.past { color: var(--border); pointer-events: none; }
-  .cal-day.friday { color: var(--border); pointer-events: none; }
+
   .cal-day.today { background: var(--brand); color: var(--dark-brown); font-weight: 700; }
   .cal-day.has-booking { background: var(--accent); }
   .cal-day.selected { background: var(--dark-brown) !important; color: #fff !important; font-weight: 700; }
-  .cal-day:not(.past):not(.friday):not(.empty):hover { background: var(--accent); }
+  .cal-day:not(.past):not(.empty):hover { background: var(--accent); }
 
   /* ── Time slots ── */
   .time-slots { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
@@ -710,6 +710,9 @@
     border-radius: 14px;
     padding: 14px 16px;
     margin-bottom: 10px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(0,0,0,0.06);
+    user-select: none;
   }
   .booking-row-header {
     display: flex;
@@ -741,6 +744,53 @@
     text-transform: uppercase;
     margin: 16px 0 8px;
   }
+
+  /* ── Booking detail bottom sheet ── */
+  .bdetail-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    align-items: flex-end;
+  }
+  .bdetail-overlay.open { display: flex; }
+  .bdetail-sheet {
+    background: var(--bg);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+    padding: 0 0 32px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .bdetail-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 12px auto 16px;
+  }
+  .bdetail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .bdetail-name { font-size: 17px; font-weight: 700; color: var(--text); }
+  .bdetail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px 20px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--surface);
+  }
+  .bdetail-label { color: var(--muted); flex-shrink: 0; margin-right: 12px; min-width: 60px; }
+  .bdetail-value { color: var(--text); font-weight: 500; text-align: right; flex: 1; }
+  .bdetail-value a { color: var(--dark-brown); text-decoration: none; }
+  .bdetail-section { padding: 10px 20px 0; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 8px; }
 
   /* ── Placeholder screen ── */
   .placeholder-screen {
@@ -841,12 +891,12 @@
           <div class="choice-icon">🐱</div>
           <div>
             <div class="choice-title">ลูกค้าเดิม</div>
-            <div class="choice-desc">ค้นหาจากเบอร์โทรศัพท์</div>
+            <div class="choice-desc">ค้นหาจากชื่อ หรือเบอร์โทร</div>
           </div>
         </div>
       </div>
       <div id="returning-search-area" style="display:none;">
-        <input type="tel" class="search-box" id="phone-search-input" placeholder="กรอกเบอร์โทรศัพท์..." oninput="searchCustomer(this.value)">
+        <input type="text" class="search-box" id="phone-search-input" placeholder="ชื่อลูกค้า หรือ เบอร์โทรศัพท์..." oninput="searchCustomer(this.value)">
         <div id="search-result"></div>
       </div>
     </div>
@@ -1070,6 +1120,14 @@
 
   <!-- Toast notification -->
   <div class="toast" id="toast"></div>
+
+  <!-- Booking detail bottom sheet -->
+  <div class="bdetail-overlay" id="bdetail-overlay" onclick="closeBDetail(event)">
+    <div class="bdetail-sheet" id="bdetail-sheet">
+      <div class="bdetail-handle"></div>
+      <div id="bdetail-content"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1085,13 +1143,20 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2EtxCwf5quu3L
 const SERVICE_DURATION = {
   'Essential Bath': 90,
   'Deep Clean Reset': 110,
-  'Signature Spa': 140
+  'Spa': 140
 };
 
 // ZONE TRAVEL BUFFER (minutes)
 const ZONE_BUFFER = {
   same: 30,
   diff: 60
+};
+
+const ZONE_AREAS = {
+  'A': 'ราชพฤกษ์ · บางแค · ตลิ่งชัน · นนทบุรี · งามวงศ์วาน',
+  'B': 'ดอนเมือง · สายไหม · รังสิต · ปทุมธานี · จตุจักร',
+  'C': 'สุขุมวิท · อโศก · ทองหล่อ · สาทร · สีลม · อารีย์',
+  'D': 'บางนา · อุดมสุข · ศรีนครินทร์ · บางกะปิ'
 };
 
 // ═══════════════════════════════════════════════════════
@@ -1181,28 +1246,55 @@ function toggleReturningSearch() {
 }
 
 let searchTimer = null;
-function searchCustomer(phone) {
+function searchCustomer(query) {
   clearTimeout(searchTimer);
   const res = document.getElementById('search-result');
-  if (phone.length < 5) { res.innerHTML = ''; return; }
+  if (query.trim().length < 2) { res.innerHTML = ''; return; }
   searchTimer = setTimeout(async () => {
     res.innerHTML = '<p style="color:var(--muted);font-size:13px;margin-top:12px;">กำลังค้นหา...</p>';
     try {
-      const data = await apiFetch('searchCustomer', { phone });
+      const data = await apiFetch('searchCustomer', { query });
       if (data && data.customer) {
-        renderCustomerResult(data);
+        // Phone exact match — single result
+        renderCustomerResult(data.customer, data.cats);
+      } else if (data && data.customers && data.customers.length > 0) {
+        // Name search — possibly multiple results
+        if (data.customers.length === 1) {
+          renderCustomerResult(data.customers[0].customer, data.customers[0].cats);
+        } else {
+          renderCustomerList(data.customers);
+        }
       } else {
         res.innerHTML = '<p style="color:var(--muted);font-size:13px;margin-top:12px;">ไม่พบข้อมูลลูกค้า</p>';
       }
     } catch(e) {
       res.innerHTML = '<p style="color:var(--error);font-size:13px;margin-top:12px;">เกิดข้อผิดพลาด</p>';
     }
-  }, 500);
+  }, 400);
 }
 
-function renderCustomerResult(data) {
-  const { customer, cats } = data;
-  const catPills = (cats || []).map(c => `<span class="cat-pill">🐱 ${c.catName}</span>`).join('');
+function renderCustomerList(customers) {
+  const html = customers.map((item, idx) => {
+    const catPills = (item.cats || []).map(c => `<span class="cat-pill">🐱 ${esc(c.catName)}</span>`).join('');
+    return `
+      <div class="result-card" style="margin-bottom:10px;">
+        <div class="result-name">${esc(item.customer.name)}</div>
+        <div class="result-phone">${esc(item.customer.phone)}</div>
+        <div class="cat-pills">${catPills}</div>
+        <button class="btn-primary mt12" onclick="pickCustomerFromList(${idx})">เลือกลูกค้ารายนี้</button>
+      </div>`;
+  }).join('');
+  document.getElementById('search-result').innerHTML = html;
+  window._foundCustomers = customers;
+}
+
+function pickCustomerFromList(idx) {
+  const item = window._foundCustomers[idx];
+  renderCustomerResult(item.customer, item.cats);
+}
+
+function renderCustomerResult(customer, cats) {
+  const catPills = (cats || []).map(c => `<span class="cat-pill">🐱 ${esc(c.catName)}</span>`).join('');
   document.getElementById('search-result').innerHTML = `
     <div class="result-card">
       <div class="result-name">${esc(customer.name)}</div>
@@ -1386,7 +1478,7 @@ function renderServiceCats() {
         <div>
           <div class="form-label">บริการ</div>
           <div class="service-chips">
-            ${['Essential Bath','Deep Clean Reset','Signature Spa'].map(svc => `
+            ${['Essential Bath','Deep Clean Reset','Spa'].map(svc => `
               <button class="service-chip ${cat.service===svc?'selected':''}" onclick="selectService(${i},'${svc}')">${svc}</button>
             `).join('')}
           </div>
@@ -1544,7 +1636,6 @@ function renderCalendar() {
 
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(year, month, d);
-    const isFriday = date.getDay() === 5;
     const isPast = date < today;
     const isToday = date.getTime() === today.getTime();
     const dateStr = formatDateDDMMYYYY(date);
@@ -1554,21 +1645,20 @@ function renderCalendar() {
     const isSelected = selDate && selDate.getFullYear()===year && selDate.getMonth()===month && selDate.getDate()===d;
 
     // Check if fully booked (no slots fit)
-    const isFullyBooked = hasBooking && !isFriday && !isPast && checkFullyBooked(dayBookings, totalSvcMins, bufferMins, isToday ? new Date() : null);
+    const isFullyBooked = hasBooking && !isPast && checkFullyBooked(dayBookings, totalSvcMins, bufferMins, isToday ? new Date() : null);
 
     // Collect zones booked that day
     const zones = [...new Set(dayBookings.map(b => b.zone).filter(z => z && z !== 'ไม่มีโซน'))];
 
     let cls = 'cal-day';
-    if (isFriday) cls += ' friday';
-    else if (isPast) cls += ' past';
+    if (isPast) cls += ' past';
     else if (isToday) cls += ' today';
-    if (hasBooking && !isPast && !isFriday) cls += ' has-booking';
+    if (hasBooking && !isPast) cls += ' has-booking';
     if (isFullyBooked) cls += ' fully-booked';
     if (isSelected) cls += ' selected';
 
     const zonePills = zones.map(z => `<span class="cal-zone-pill">${z}</span>`).join('');
-    const clickable = !isFriday && !isPast;
+    const clickable = !isPast;
 
     html += `
       <div class="${cls}" ${clickable ? `onclick="selectDate(${year},${month},${d})"` : ''}>
@@ -1806,6 +1896,8 @@ async function saveBooking() {
     await apiFetch('saveBooking', {
       customerId,
       customerName: state.customer.name,
+      phone: state.customer.phone || '',
+      address: state.customer.address || '',
       date: dateStr,
       dayOfWeek,
       startTime,
@@ -1838,6 +1930,7 @@ async function saveBooking() {
 // ═══════════════════════════════════════════════════════
 let allBookings = [];
 let scheduleFilter = 'upcoming';
+let _scheduleRows = [];
 
 async function loadSchedule() {
   document.getElementById('schedule-list').innerHTML = '<p style="color:var(--muted);font-size:13px;">กำลังโหลด...</p>';
@@ -1894,19 +1987,22 @@ function renderSchedule() {
     groups[b.date].push(b);
   });
 
+  _scheduleRows = [];
   let html = '';
   Object.keys(groups).forEach(date => {
     const label = date === todayStr ? '📅 วันนี้' : `${b_dayLabel(date)} · ${date}`;
     html += `<div class="date-group-label">${label}</div>`;
     groups[date].forEach(b => {
+      const idx = _scheduleRows.length;
+      _scheduleRows.push(b);
       const statusCls = `status-${b.status}`;
       html += `
-        <div class="booking-row">
+        <div class="booking-row" style="cursor:pointer;" onclick="openBDetail(${idx})">
           <div class="booking-row-header">
             <div class="booking-row-name">${esc(b.customerName)}</div>
             <span class="booking-status ${statusCls}">${esc(b.status)}</span>
           </div>
-          <div class="booking-row-time">⏰ ${b.startTime} – ${b.endTime} &nbsp;·&nbsp; โซน ${esc(b.zone)}</div>
+          <div class="booking-row-time mt8">⏰ ${b.startTime} – ${b.endTime} &nbsp;·&nbsp; โซน ${esc(b.zone)}${ZONE_AREAS[b.zone] ? ' · ' + ZONE_AREAS[b.zone] : ''}</div>
           <div class="booking-row-services mt8">${esc(b.services)}</div>
         </div>
       `;
@@ -2040,10 +2136,11 @@ function formatDateDDMMYYYY(date) {
 }
 
 function formatDateThai(date) {
+  const dow = THAI_DOW[date.getDay()];
   const d = date.getDate();
   const m = THAI_MONTHS[date.getMonth()];
   const y = date.getFullYear() + 543;
-  return `วันที่ ${d} ${m} ${y}`;
+  return `${dow}ที่ ${d} ${m} ${y}`;
 }
 
 const THAI_DOW = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
@@ -2061,6 +2158,37 @@ function showToast(msg) {
   el.textContent = msg;
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════════════════════
+// BOOKING DETAIL BOTTOM SHEET
+// ═══════════════════════════════════════════════════════
+function openBDetail(idx) {
+  const b = _scheduleRows[idx];
+  const areas = ZONE_AREAS[b.zone] ? `${b.zone} · ${ZONE_AREAS[b.zone]}` : b.zone;
+  let html = `
+    <div class="bdetail-header">
+      <div class="bdetail-name">${esc(b.customerName)}</div>
+      <span class="booking-status status-${b.status}">${esc(b.status)}</span>
+    </div>
+    <div class="bdetail-section">ข้อมูลลูกค้า</div>
+    ${b.phone ? `<div class="bdetail-row"><span class="bdetail-label">โทร</span><span class="bdetail-value"><a href="tel:${esc(b.phone)}">${esc(b.phone)}</a></span></div>` : ''}
+    ${b.address ? `<div class="bdetail-row"><span class="bdetail-label">ที่อยู่</span><span class="bdetail-value">${esc(b.address)}</span></div>` : ''}
+    <div class="bdetail-section">การนัดหมาย</div>
+    <div class="bdetail-row"><span class="bdetail-label">วันที่</span><span class="bdetail-value">${esc(b.date)}</span></div>
+    <div class="bdetail-row"><span class="bdetail-label">เวลา</span><span class="bdetail-value">${esc(b.startTime)} – ${esc(b.endTime)}</span></div>
+    <div class="bdetail-row"><span class="bdetail-label">โซน</span><span class="bdetail-value">${esc(areas)}</span></div>
+    <div class="bdetail-section">บริการ</div>
+    <div class="bdetail-row"><span class="bdetail-label">บริการ</span><span class="bdetail-value">${esc(b.services)}</span></div>
+  `;
+  document.getElementById('bdetail-content').innerHTML = html;
+  document.getElementById('bdetail-overlay').classList.add('open');
+}
+
+function closeBDetail(e) {
+  if (e.target === document.getElementById('bdetail-overlay')) {
+    document.getElementById('bdetail-overlay').classList.remove('open');
+  }
 }
 
 // ═══════════════════════════════════════════════════════
