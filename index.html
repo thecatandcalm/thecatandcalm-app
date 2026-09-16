@@ -922,6 +922,10 @@
         <label class="form-label">ที่อยู่</label>
         <textarea class="form-textarea" id="nc-address" placeholder="ที่อยู่เต็ม"></textarea>
       </div>
+      <div class="form-group">
+        <label class="form-label">Google Maps Link <span style="color:var(--muted);font-weight:400;">(ไม่บังคับ)</span></label>
+        <input type="url" class="form-input" id="nc-maps" placeholder="https://maps.app.goo.gl/...">
+      </div>
       <hr class="divider">
       <div class="section-label" style="padding:0;">น้องแมว</div>
       <div id="nc-cats-container" class="mt12"></div>
@@ -1165,7 +1169,7 @@ const ZONE_AREAS = {
 let state = {
   isNewCustomer: true,
   customer: null,     // { name, phone, address, district, zone }
-  cats: [],           // [{ catName, weight, coat, breed, service }]
+  cats: [],           // [{ catName, weight, coat, breed, service, specialNotes }]
   selectedZone: null,
   selectedDate: null,
   selectedTime: null,
@@ -1222,12 +1226,13 @@ function goToNewCustomer() {
   document.getElementById('nc-name').value = '';
   document.getElementById('nc-phone').value = '';
   document.getElementById('nc-address').value = '';
+  document.getElementById('nc-maps').value = '';
   renderNewCatFields();
   showScreen('screen-new-customer');
 }
 
 function addNewCat() {
-  state.cats.push({ catName: '', breed: '', weight: 4, coat: 'สั้น', service: null });
+  state.cats.push({ catName: '', breed: '', weight: 4, coat: 'สั้น', service: null, specialNotes: '' });
   renderNewCatFields();
 }
 
@@ -1317,7 +1322,8 @@ function selectReturningCustomer() {
     phone: customer.phone,
     address: customer.address,
     district: customer.district,
-    zone: customer.zone
+    zone: customer.zone,
+    mapsLink: customer.mapsLink || ''
   };
   state.cats = (cats || []).map(c => ({
     catId: c.catId,
@@ -1325,7 +1331,8 @@ function selectReturningCustomer() {
     breed: c.breed,
     weight: parseFloat(c.weight),
     coat: c.coat,
-    service: null
+    service: null,
+    specialNotes: c.specialNotes || ''
   }));
   goToServices();
 }
@@ -1356,7 +1363,8 @@ async function parseWithAI() {
       breed: c.breed || '',
       weight: parseFloat(c.weight) || 0,
       coat: c.coat || 'สั้น',
-      service: null
+      service: null,
+      specialNotes: ''
     }));
     renderNewCatFields();
     document.getElementById('ai-result-section').style.display = 'block';
@@ -1399,6 +1407,10 @@ function renderNewCatFields() {
           </select>
         </div>
       </div>
+      <div class="form-group">
+        <label class="form-label">Special Notes <span style="color:var(--muted);font-weight:400;">(ไม่บังคับ)</span></label>
+        <textarea class="form-input" rows="2" style="resize:none;" placeholder="พฤติกรรม, อาการแพ้, หรือข้อมูลพิเศษ..." onchange="updateNewCat(${i},'specialNotes',this.value)">${esc(cat.specialNotes || '')}</textarea>
+      </div>
     </div>
   `).join('');
 }
@@ -1416,10 +1428,11 @@ function confirmNewCustomer() {
   const name = document.getElementById('nc-name').value.trim();
   const phone = document.getElementById('nc-phone').value.trim();
   const address = document.getElementById('nc-address').value.trim();
+  const mapsLink = document.getElementById('nc-maps').value.trim();
   if (!name || !phone || !address) { showToast('กรุณากรอกข้อมูลให้ครบ'); return; }
   if (state.cats.length === 0) { showToast('กรุณาเพิ่มข้อมูลน้องแมวอย่างน้อย 1 ตัว'); return; }
 
-  state.customer = { name, phone, address, district: '', zone: '' };
+  state.customer = { name, phone, address, district: '', zone: '', mapsLink };
   goToServices();
 }
 
@@ -1459,11 +1472,16 @@ function renderServiceCats() {
           </select>
         </div>
       </div>
+      <div style="margin-bottom:10px;">
+        <div class="form-label">Special Notes <span style="color:var(--muted);font-weight:400;">(ไม่บังคับ)</span></div>
+        <textarea class="form-input" rows="2" style="font-size:13px;padding:8px 10px;resize:none;" placeholder="พฤติกรรม, อาการแพ้, หรือข้อมูลพิเศษ..." oninput="updateSvcCat(${i},'specialNotes',this.value)">${esc(cat.specialNotes || '')}</textarea>
+      </div>
     ` : `
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;color:var(--muted);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;color:var(--muted);">
         น้ำหนัก: <strong style="color:var(--text)">${cat.weight} กก.</strong>
         <span class="size-badge">${size}</span>
       </div>
+      ${cat.specialNotes ? `<div style="font-size:12px;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;">📝 ${esc(cat.specialNotes)}</div>` : ''}
     `;
     return `
       <div class="cat-card" id="svc-cat-${i}">
@@ -1513,7 +1531,7 @@ function removeCatFromBooking(i) {
 }
 
 function addCatManually() {
-  state.cats.push({ catName: '', breed: '', weight: 4, coat: 'สั้น', service: null });
+  state.cats.push({ catName: '', breed: '', weight: 4, coat: 'สั้น', service: null, specialNotes: '' });
   renderServiceCats();
   updateDuration();
   // scroll to bottom of container
@@ -1836,6 +1854,7 @@ function renderConfirmCard() {
     <div class="confirm-row"><span class="c-label">ขน</span><span class="c-value">${esc(cat.coat)}</span></div>
     <div class="confirm-row"><span class="c-label">น้ำหนัก</span><span class="c-value">${cat.weight} กก.</span></div>
     <div class="confirm-row"><span class="c-label">บริการ</span><span class="c-value">${esc(cat.service)}</span></div>
+    ${cat.specialNotes ? `<div class="confirm-row"><span class="c-label">Special Notes</span><span class="c-value" style="white-space:pre-wrap;">${esc(cat.specialNotes)}</span></div>` : ''}
   `).join('');
   document.getElementById('confirm-cats-rows').innerHTML = catRows;
 }
@@ -1865,11 +1884,13 @@ async function saveBooking() {
         address: state.customer.address,
         district: state.customer.district || '',
         zone: state.selectedZone,
+        mapsLink: state.customer.mapsLink || '',
         cats: state.cats.map(c => ({
           catName: c.catName,
           breed: c.breed,
           weight: c.weight,
-          coat: c.coat
+          coat: c.coat,
+          specialNotes: c.specialNotes || ''
         }))
       });
       customerId = cusResult.customerId;
@@ -1884,7 +1905,8 @@ async function saveBooking() {
             catName: c.catName,
             breed: c.breed,
             weight: c.weight,
-            coat: c.coat
+            coat: c.coat,
+            specialNotes: c.specialNotes || ''
           }))
         });
         catIds = [...catIds, ...(result.catIds || [])];
@@ -1898,6 +1920,7 @@ async function saveBooking() {
       customerName: state.customer.name,
       phone: state.customer.phone || '',
       address: state.customer.address || '',
+      mapsLink: state.customer.mapsLink || '',
       date: dateStr,
       dayOfWeek,
       startTime,
@@ -1906,6 +1929,7 @@ async function saveBooking() {
       catIds,
       catCount: state.cats.length,
       servicesText,
+      cats: state.cats.map(c => ({ catName: c.catName, specialNotes: c.specialNotes || '' })),
       status: 'ยืนยัน'
     });
 
