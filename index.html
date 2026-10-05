@@ -580,7 +580,7 @@
 
   /* ── Confirmation card ── */
   .confirm-card {
-    background: #d4c4ac;
+    background: #735e4b;
     border-radius: 0px;
     padding: 24px 20px;
     margin-bottom: 20px;
@@ -1549,6 +1549,10 @@ function addCatManually() {
 }
 
 function getAutoDuration() {
+  const n = state.cats.length;
+  if (n === 2) return 180;
+  if (n === 3) return 240;
+  if (n >= 4) return 330;
   return state.cats.reduce((sum, cat) => sum + (SERVICE_DURATION[cat.service] || 0), 0);
 }
 
@@ -1707,10 +1711,10 @@ function checkFullyBooked(bookings, totalSvcMins, nowDate) {
     start: timeToMins(b.startTime),
     end:   timeToMins(b.endTime)
   }));
-  for (let m = 600; m < 19 * 60; m += 30) {
+  for (let m = 600; m < 20 * 60; m += 30) {
     if (nowDate && m <= nowDate.getHours() * 60 + nowDate.getMinutes()) continue;
     const endMins = m + totalSvcMins;
-    if (endMins > 19 * 60) continue;
+    if (endMins > 20 * 60) continue;
     const fits = blockedRanges.every(r => endMins <= r.start || m >= r.end);
     if (fits) return false;
   }
@@ -1757,7 +1761,7 @@ function renderTimeSlots(bookings) {
 
   // Generate slots every 30 min from 10:00 to 19:00
   const slots = [];
-  for (let m = 600; m < 19 * 60; m += 30) slots.push(m);
+  for (let m = 600; m < 20 * 60; m += 30) slots.push(m);
 
   // Build output
   let html = '';
@@ -1790,7 +1794,7 @@ function renderTimeSlots(bookings) {
 
     // Check if new booking fits starting here
     const endMins = slotMins + totalSvcMins;
-    const fits = endMins <= 19 * 60;
+    const fits = endMins <= 20 * 60;
     const noOverlap = blockedRanges.every(r => endMins <= r.start || slotMins >= r.end);
 
     if (fits && noOverlap) {
@@ -1842,9 +1846,9 @@ function renderConfirmCard() {
   const dateFormatted = formatDateThai(state.selectedDate);
 
   const infoRows = `
-    <div class="confirm-row"><span class="c-label">ชื่อผู้จอง</span><span class="c-value">${esc(state.customer.name)}</span></div>
+    <div class="confirm-row"><span class="c-label">ชื่อผู้จอง</span><span class="c-value">คุณ${esc(state.customer.name)}</span></div>
     <div class="confirm-row"><span class="c-label">วันที่</span><span class="c-value">${dateFormatted}</span></div>
-    <div class="confirm-row"><span class="c-label">เวลา</span><span class="c-value">${minsToTime(startMins)} – ${minsToTime(endMins)}</span></div>
+    <div class="confirm-row"><span class="c-label">เวลา</span><span class="c-value">${minsToTime(startMins)} – ${minsToTime(endMins)} <span style="font-size:12px;color:var(--muted);">(+/- 30 นาที)</span></span></div>
     <div class="confirm-row"><span class="c-label">ที่อยู่</span><span class="c-value">${esc(state.customer.address)}</span></div>
   `;
   document.getElementById('confirm-info-rows').innerHTML = infoRows;
