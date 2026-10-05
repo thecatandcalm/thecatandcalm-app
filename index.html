@@ -945,9 +945,25 @@
       <div class="section-label" style="padding:0; margin-top:0;">เลือกบริการสำหรับแต่ละตัว</div>
       <div id="service-cats-container" class="mt12"></div>
       <button class="dashed-btn" onclick="addCatManually()">+ เพิ่มน้องแมว</button>
-      <div class="duration-box mt16">
-        <div class="duration-label">เวลารวมทั้งหมด</div>
-        <div class="duration-value" id="total-duration">— นาที</div>
+      <div class="duration-box mt16" style="flex-direction:column;align-items:stretch;">
+        <div class="duration-label" style="margin-bottom:8px;">เวลารวมทั้งหมด <span id="duration-auto-label" style="font-size:12px;color:var(--muted);display:none;"></span></div>
+        <select id="duration-input" class="form-input" style="font-size:15px;font-weight:600;"
+          onchange="state.manualDuration = this.value ? parseInt(this.value) : null; updateDuration();">
+          <option value="">— อัตโนมัติ</option>
+          <option value="60">1 ชั่วโมง</option>
+          <option value="90">1.5 ชั่วโมง</option>
+          <option value="120">2 ชั่วโมง</option>
+          <option value="150">2.5 ชั่วโมง</option>
+          <option value="180">3 ชั่วโมง</option>
+          <option value="210">3.5 ชั่วโมง</option>
+          <option value="240">4 ชั่วโมง</option>
+          <option value="270">4.5 ชั่วโมง</option>
+          <option value="300">5 ชั่วโมง</option>
+          <option value="330">5.5 ชั่วโมง</option>
+          <option value="360">6 ชั่วโมง</option>
+          <option value="390">6.5 ชั่วโมง</option>
+          <option value="420">7 ชั่วโมง</option>
+        </select>
       </div>
       <button class="btn-primary mt12" onclick="goToZone()">ถัดไป — เลือกโซน →</button>
     </div>
@@ -1003,9 +1019,6 @@
       <div class="topbar-right"></div>
     </div>
     <div class="content">
-      <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
-        <div class="buffer-pill" id="buffer-pill">โซน — · buffer — นาที</div>
-      </div>
       <div class="calendar" id="calendar"></div>
       <div id="timeslots-section" style="display:none;">
         <hr class="divider">
@@ -1020,10 +1033,6 @@
             <div class="time-summary-row">
               <span class="label">เสร็จบริการ</span>
               <span class="value" id="ts-end">—</span>
-            </div>
-            <div class="time-summary-row">
-              <span class="label">เดินทาง</span>
-              <span class="value" id="ts-buffer">—</span>
             </div>
           </div>
         </div>
@@ -1151,10 +1160,6 @@ const SERVICE_DURATION = {
 };
 
 // ZONE TRAVEL BUFFER (minutes)
-const ZONE_BUFFER = {
-  same: 30,
-  diff: 60
-};
 
 const ZONE_AREAS = {
   'A': 'ราชพฤกษ์ · บางแค · ตลิ่งชัน · นนทบุรี · งามวงศ์วาน',
@@ -1170,6 +1175,7 @@ let state = {
   isNewCustomer: true,
   customer: null,     // { name, phone, address, district, zone }
   cats: [],           // [{ catName, weight, coat, breed, service, specialNotes }]
+  manualDuration: null, // null = auto-calc from services; number = manual override in minutes
   selectedZone: null,
   selectedDate: null,
   selectedTime: null,
@@ -1210,6 +1216,7 @@ function startNewBooking() {
   state.isNewCustomer = true;
   state.customer = null;
   state.cats = [];
+  state.manualDuration = null;
   state.selectedZone = null;
   state.selectedDate = null;
   state.selectedTime = null;
@@ -1541,15 +1548,23 @@ function addCatManually() {
   }, 50);
 }
 
+function getAutoDuration() {
+  return state.cats.reduce((sum, cat) => sum + (SERVICE_DURATION[cat.service] || 0), 0);
+}
+
+function getTotalDuration() {
+  return state.manualDuration !== null ? state.manualDuration : getAutoDuration();
+}
+
 function updateDuration() {
-  const total = state.cats.reduce((sum, cat) => sum + (SERVICE_DURATION[cat.service] || 0), 0);
-  const el = document.getElementById('total-duration');
-  if (total === 0) {
-    el.textContent = '— นาที';
-  } else {
-    const h = Math.floor(total / 60);
-    const m = total % 60;
-    el.textContent = h > 0 ? `${h} ชม. ${m} นาที` : `${total} นาที`;
+  const auto = getAutoDuration();
+  const isOverride = state.manualDuration !== null;
+  const el = document.getElementById('duration-input');
+  if (el && !isOverride) el.value = '';
+  const label = document.getElementById('duration-auto-label');
+  if (label) {
+    label.textContent = auto > 0 ? `(อัตโนมัติ: ${auto} นาที)` : '';
+    label.style.display = auto > 0 ? 'inline' : 'none';
   }
 }
 
@@ -1597,7 +1612,6 @@ async function goToDateTime() {
   state.calMonth = now.getMonth();
   state.selectedDate = null;
   state.selectedTime = null;
-  document.getElementById('buffer-pill').textContent = `โซน ${state.selectedZone} · buffer ${state.selectedZone === 'ไม่มีโซน' ? 60 : 30} นาที`;
   document.getElementById('timeslots-section').style.display = 'none';
   document.getElementById('time-summary-box').style.display = 'none';
   document.getElementById('calendar').innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px;">กำลังโหลด...</p>';
@@ -1634,8 +1648,7 @@ function renderCalendar() {
   const month = state.calMonth;
   const today = new Date();
   today.setHours(0,0,0,0);
-  const totalSvcMins = state.cats.reduce((sum, c) => sum + (SERVICE_DURATION[c.service] || 0), 0);
-  const bufferMins = ZONE_BUFFER.same;
+  const totalSvcMins = getTotalDuration();
 
   const firstDay = (new Date(year, month, 1).getDay() + 6) % 7; // Mon=0 … Sun=6
   const daysInMonth = new Date(year, month+1, 0).getDate();
@@ -1663,7 +1676,7 @@ function renderCalendar() {
     const isSelected = selDate && selDate.getFullYear()===year && selDate.getMonth()===month && selDate.getDate()===d;
 
     // Check if fully booked (no slots fit)
-    const isFullyBooked = hasBooking && !isPast && checkFullyBooked(dayBookings, totalSvcMins, bufferMins, isToday ? new Date() : null);
+    const isFullyBooked = hasBooking && !isPast && checkFullyBooked(dayBookings, totalSvcMins, isToday ? new Date() : null);
 
     // Collect zones booked that day
     const zones = [...new Set(dayBookings.map(b => b.zone).filter(z => z && z !== 'ไม่มีโซน'))];
@@ -1689,17 +1702,14 @@ function renderCalendar() {
   document.getElementById('calendar').innerHTML = html;
 }
 
-function checkFullyBooked(bookings, totalSvcMins, bufferMins, nowDate) {
-  // Returns true if no 30-min slot can fit a new booking
-  const blockedRanges = bookings.map(b => {
-    const start = timeToMins(b.startTime);
-    const end = timeToMins(b.endTime);
-    const buf = b.zone === state.selectedZone ? ZONE_BUFFER.same : ZONE_BUFFER.diff;
-    return { start, end: end + buf };
-  });
+function checkFullyBooked(bookings, totalSvcMins, nowDate) {
+  const blockedRanges = bookings.map(b => ({
+    start: timeToMins(b.startTime),
+    end:   timeToMins(b.endTime)
+  }));
   for (let m = 600; m < 19 * 60; m += 30) {
     if (nowDate && m <= nowDate.getHours() * 60 + nowDate.getMinutes()) continue;
-    const endMins = m + totalSvcMins + bufferMins;
+    const endMins = m + totalSvcMins;
     if (endMins > 19 * 60) continue;
     const fits = blockedRanges.every(r => endMins <= r.start || m >= r.end);
     if (fits) return false;
@@ -1734,18 +1744,16 @@ async function loadTimeSlots() {
 
 function renderTimeSlots(bookings) {
   const container = document.getElementById('time-slots-container');
-  const totalSvcMins = state.cats.reduce((sum, c) => sum + (SERVICE_DURATION[c.service] || 0), 0);
-  const bufferMins = getBuffer(state.selectedZone, state.selectedZone);
+  const totalSvcMins = getTotalDuration();
   const now = new Date();
   const isToday = state.selectedDate.toDateString() === now.toDateString();
 
   // Build blocked ranges from existing bookings
-  const blockedRanges = bookings.map(b => {
-    const start = timeToMins(b.startTime);
-    const end = timeToMins(b.endTime);
-    const bBuffer = b.zone === state.selectedZone ? ZONE_BUFFER.same : ZONE_BUFFER.diff;
-    return { start, end: end + bBuffer, raw: b };
-  });
+  const blockedRanges = bookings.map(b => ({
+    start: timeToMins(b.startTime),
+    end:   timeToMins(b.endTime),
+    raw: b
+  }));
 
   // Generate slots every 30 min from 10:00 to 19:00
   const slots = [];
@@ -1780,8 +1788,8 @@ function renderTimeSlots(bookings) {
       continue;
     }
 
-    // Check if new booking fits starting here (service + buffer must not overlap any blocked range)
-    const endMins = slotMins + totalSvcMins + bufferMins;
+    // Check if new booking fits starting here
+    const endMins = slotMins + totalSvcMins;
     const fits = endMins <= 19 * 60;
     const noOverlap = blockedRanges.every(r => endMins <= r.start || slotMins >= r.end);
 
@@ -1805,12 +1813,10 @@ function renderTimeSlots(bookings) {
 
 function selectTime(mins) {
   state.selectedTime = mins;
-  const totalSvc = state.cats.reduce((sum, c) => sum + (SERVICE_DURATION[c.service] || 0), 0);
-  const buf = getBuffer(state.selectedZone, state.selectedZone);
+  const totalSvc = getTotalDuration();
 
   document.getElementById('ts-start').textContent = minsToTime(mins);
   document.getElementById('ts-end').textContent = minsToTime(mins + totalSvc);
-  document.getElementById('ts-buffer').textContent = `+${buf} นาที (ถึง ${minsToTime(mins + totalSvc + buf)})`;
   document.getElementById('time-summary-box').style.display = 'block';
 
   // Re-render slots to show selection
@@ -1818,11 +1824,6 @@ function selectTime(mins) {
   renderTimeSlots(state.bookingsByDate[dateStr] || []);
 }
 
-function getBuffer(zone, _) {
-  // Since we don't know previous zone, use same-zone buffer logic
-  // In practice, operator picks zone per booking; use 30 for same zone
-  return ZONE_BUFFER.same;
-}
 
 // ═══════════════════════════════════════════════════════
 // SCREEN 7 — CONFIRMATION
@@ -1835,7 +1836,7 @@ function goToConfirmation() {
 }
 
 function renderConfirmCard() {
-  const totalSvc = state.cats.reduce((sum, c) => sum + (SERVICE_DURATION[c.service] || 0), 0);
+  const totalSvc = getTotalDuration();
   const startMins = state.selectedTime;
   const endMins = startMins + totalSvc;
   const dateFormatted = formatDateThai(state.selectedDate);
@@ -1865,7 +1866,7 @@ async function saveBooking() {
   btn.innerHTML = '<span class="spinner"></span>กำลังบันทึก...';
 
   try {
-    const totalSvc = state.cats.reduce((sum, c) => sum + (SERVICE_DURATION[c.service] || 0), 0);
+    const totalSvc = getTotalDuration();
     const startMins = state.selectedTime;
     const endMins = startMins + totalSvc;
     const startTime = minsToTime(startMins);
